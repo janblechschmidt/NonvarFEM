@@ -1,0 +1,4 @@
+from .solverNeilan import solverNeilan
+from .solverFEHessianGMRES import solverFEHessianGMRES
+from .solverFEHessianDirect import solverFEHessianDirect
+from .solverNeilanSalgadoZhang import solverNeilanSalgadoZhang
