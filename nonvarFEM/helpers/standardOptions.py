@@ -1,4 +1,3 @@
-
 def standardOptions():
     opt = dict()
 
@@ -62,6 +61,7 @@ def standardOptions():
     opt["cell_residual_with_FEGradient"] = 0
 
     opt["methodName"] = 'standard'
+    opt["outputDir"] = 'results'
 
     return opt
 

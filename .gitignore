@@ -1,11 +1,17 @@
 # Gitignore template from https://gist.github.com/GhostofGoes/94580e76cd251972b15b4821c8a06f59
 
-# Editors
-.vscode/
-.idea/
+# Output directories
+results/
 
-# Vagrant
-.vagrant/
+# Semi-Lagrange stuff
+SL_NVPDE.py
+SL_Asian_working.py
+
+# Jupyter notebooks for testing
+notebooks/
+
+# Todo list
+todo.md
 
 # Mac/OSX
 .DS_Store

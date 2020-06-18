@@ -2,7 +2,7 @@
 
 # FEniCS stuff
 from dolfin import parameters, set_log_level
-from dolfin import Function, assign, MeshFunction, interpolate
+from dolfin import Function, assign, interpolate
 
 
 # Basic linear algebra
@@ -83,7 +83,7 @@ def solveProblem(P, opt):
         P.doPlots(opt)
 
         df.loc[k, ['hmax', 'Ndofs', 'NdofsMixed', 'N_iter']] = (
-                h, ndofs, ndofsMixed, N_iter)
+            h, ndofs, ndofsMixed, N_iter)
 
         # Check error estimation option during the first iteration
         if k == 0 and not P.hasSolution and opt["errorEstimationMethod"] == 1:
@@ -116,7 +116,7 @@ def solveProblem(P, opt):
             df.loc[k, 'H2_error'] = h2semierr
             df.loc[k, 'EdgeJump_error'] = jumperr
             df.loc[k, 'H2h_error'] = np.sqrt(
-                    pow(h2semierr, 2) + pow(jumperr, 2))
+                pow(h2semierr, 2) + pow(jumperr, 2))
 
             # Method 2: Collect the current solution, compute the norms of residual on finest mesh
         if opt["errorEstimationMethod"] == 2:
@@ -195,7 +195,7 @@ def solveProblem(P, opt):
             hlp.plotError(df)
 
     if opt["writeToCsv"]:
-        hlp.writeOutputToCsv(opt["id"] + '.csv', df)
+        hlp.writeOutputToCsv(df, opt)
 
     return df
 
@@ -206,7 +206,7 @@ if __name__ == "__main__":
 
     set_log_level(21)
 
-    opt["initialMeshResolution"] = 4
+    opt["initialMeshResolution"] = 2
     opt["timeSteps"] = 10
     opt["timeStepFactor"] = 2
     opt["printCordesInfo"] = 0
