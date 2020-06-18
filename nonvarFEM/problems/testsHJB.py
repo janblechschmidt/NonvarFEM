@@ -13,7 +13,7 @@ import ufl
 from .meshes import mesh_UnitSquare, mesh_Square
 
 # Import base class of problems
-from .hjb import HJB
+from nonvarFEM.pdes.hjb import HJB
 
 
 class MinimumArrivalTime(HJB):

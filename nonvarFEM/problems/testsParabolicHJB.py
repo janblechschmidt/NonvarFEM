@@ -10,7 +10,7 @@ import ufl
 from .meshes import mesh_UnitSquare, mesh_Triangle
 
 # Import base class of problems
-from .parabolicHJB import ParabolicHJB as pHJB
+from nonvarFEM.pdes.parabolicHJB import ParabolicHJB as pHJB
 
 
 class Mother(pHJB):

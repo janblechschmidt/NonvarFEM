@@ -1,7 +1,7 @@
 # from dolfin import *
 from .nvp import NVP
 import numpy as np
-from norms import L2_norm, H10_norm, H20_norm
+from nonvarFEM.norms import L2_norm, H10_norm, H20_norm
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
 

@@ -3,7 +3,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
-from plotErrorEstimates import plotErrorEstimates
+from nonvarFEM.helpers.plotErrorEstimates import plotErrorEstimates
 from dolfin import FunctionSpace, TestFunction, MeshFunction, Function
 from dolfin import inner, grad, assemble, dx, dS, avg, tr, plot
 from dolfin import project, interpolate, refine
@@ -13,10 +13,10 @@ from dolfin import FiniteElement, TensorElement, MixedElement
 from dolfin import FunctionAssigner
 
 # Import solvers
-from solvers import solverFEHessianDirect, solverFEHessianGMRES
-from solvers import solverNeilanSalgadoZhang, solverNeilan
+from nonvarFEM.solvers import solverFEHessianDirect, solverFEHessianGMRES
+from nonvarFEM.solvers import solverNeilanSalgadoZhang, solverNeilan
 
-from norms import vj
+from nonvarFEM.norms import vj
 
 
 # --------------------------------------------------

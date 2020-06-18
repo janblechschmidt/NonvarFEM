@@ -12,7 +12,7 @@ from dolfin import cos, conditional, exp, ln
 from .meshes import mesh_UnitSquare, mesh_Square
 
 # Import base class of problems
-from .nvp import NVP
+from nonvarFEM.pdes import NVP
 
 # --------------------------------------------------
 # Test example for solution in H^alpha

@@ -13,10 +13,10 @@ import ufl
 from .meshes import mesh_UnitSquare
 
 # Import base class of problems
-from .parabolicNVP import ParabolicNVP
+from nonvarFEM.pdes.parabolicNVP import ParabolicNVP
 
 # Import explicit solution for worst of two assets put
-from problems.explicitSolutionWorstOfTwoAssetsPut import Mfunc
+from nonvarFEM.problems.explicitSolutionWorstOfTwoAssetsPut import Mfunc
 
 # --------------------------------------------------
 # Test example for solution in H^alpha

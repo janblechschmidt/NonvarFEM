@@ -8,25 +8,21 @@ from dolfin import Function, assign, MeshFunction, interpolate
 # Basic linear algebra
 import numpy as np
 
-# Plotting
-from plotError import plotError
-
 # Auxiliary stuff
-import stats
-from standardOptions import standardOptions
+import nonvarFEM.helpers as hlp
 
 # Elliptic non-variational pdes
-import problems.testsNVP as NVP
+import nonvarFEM.problems.testsNVP as NVP
 
 # Parabolic non-variational pdes
-import problems.testsParabolicNVP as PNVP
+import nonvarFEM.problems.testsParabolicNVP as PNVP
 
 # Elliptic HJB equations
-import problems.testsHJB as HJB
+import nonvarFEM.problems.testsHJB as HJB
 
-import problems.testsParabolicHJB as PHJB
+import nonvarFEM.problems.testsParabolicHJB as PHJB
 
-from norms import EdgeJump_norm, H20_norm, H10_norm, L2_norm
+from nonvarFEM.norms import EdgeJump_norm, H20_norm, H10_norm, L2_norm
 
 parameters["reorder_dofs_serial"] = False
 # parameters['form_compiler']['quadrature_rule'] = 'vertex'
@@ -40,7 +36,7 @@ parameters['krylov_solver']['monitor_convergence'] = True
 
 def solveProblem(P, opt):
 
-    df = stats.initDataframe()
+    df = hlp.initDataframe()
 
     if opt["meshRefinement"]:
         n_range = range(opt["numberMeshLevels"])
@@ -75,7 +71,7 @@ def solveProblem(P, opt):
         ndofsMixed = P.totalDofs(opt)
 
         if k == 0:
-            print(stats.getSummary(P, opt))
+            print(hlp.getSummary(P, opt))
 
         print("Solve problem with %d (%d) dofs." % (ndofs, ndofsMixed))
 
@@ -87,7 +83,7 @@ def solveProblem(P, opt):
         P.doPlots(opt)
 
         df.loc[k, ['hmax', 'Ndofs', 'NdofsMixed', 'N_iter']] = (
-            h, ndofs, ndofsMixed, N_iter)
+                h, ndofs, ndofsMixed, N_iter)
 
         # Check error estimation option during the first iteration
         if k == 0 and not P.hasSolution and opt["errorEstimationMethod"] == 1:
@@ -120,9 +116,9 @@ def solveProblem(P, opt):
             df.loc[k, 'H2_error'] = h2semierr
             df.loc[k, 'EdgeJump_error'] = jumperr
             df.loc[k, 'H2h_error'] = np.sqrt(
-                pow(h2semierr, 2) + pow(jumperr, 2))
+                    pow(h2semierr, 2) + pow(jumperr, 2))
 
-        # Method 2: Collect the current solution, compute the norms of residual on finest mesh
+            # Method 2: Collect the current solution, compute the norms of residual on finest mesh
         if opt["errorEstimationMethod"] == 2:
             uerr = Function(P.V)
             assign(uerr, P.u)
@@ -193,20 +189,20 @@ def solveProblem(P, opt):
             df.loc[k, 'EdgeJump_error'] = EdgeJumperr
 
     if len(n_range) > 1:
-        df = stats.determineEOCforDataframe(P.dim(), df)
+        df = hlp.determineEOCforDataframe(P.dim(), df)
 
         if opt["plotErrorRates"]:
-            plotError(df)
+            hlp.plotError(df)
 
     if opt["writeToCsv"]:
-        stats.writeOutputToCsv(opt["id"] + '.csv', df)
+        hlp.writeOutputToCsv(opt["id"] + '.csv', df)
 
     return df
 
 
 if __name__ == "__main__":
 
-    opt = standardOptions()
+    opt = hlp.standardOptions()
 
     set_log_level(21)
 

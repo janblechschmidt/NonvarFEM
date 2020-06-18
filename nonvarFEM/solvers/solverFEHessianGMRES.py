@@ -9,7 +9,7 @@ import sys
 
 # Basic linear algebra
 import numpy as np
-from norms import vj, mj
+from nonvarFEM.norms import vj, mj
 
 # Advanced linear algebra
 import scipy.sparse as sp

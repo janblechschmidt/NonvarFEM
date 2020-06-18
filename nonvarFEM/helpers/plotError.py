@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
-from estimateOrderOfConvergence import estimateOrderOfConvergence
+from nonvarFEM.helpers import estimateOrderOfConvergence
+#import estimateOrderOfConvergence
+
 def plotError(df, fig=None, dim = 2, title = "Absolute errors", dofs = "Ndofs"):
     if not fig:
         fig = plt.figure('errorRates', clear=True)

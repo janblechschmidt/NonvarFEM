@@ -4,7 +4,7 @@ from dolfin import *
 # from dolfin import project, assemble_system, solve
 # from dolfin import inner, grad, jump, avg, dx, div, dS, ds
 from time import time
-from norms import vj, mj
+from nonvarFEM.norms import vj, mj
 import sys
 
 
