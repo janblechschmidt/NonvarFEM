@@ -1,10 +1,19 @@
-# Non-variational pdes
-import problems.testsNVP as NVP
-from solve import solveProblem
-from standardOptions import standardOptions
+import sys
+sys.path.insert(0, '../..')
+
+# Problem to solve
+from nonvarFEM.problems.testsNVP import Cinfty
+
+# Solve routine
+from nonvarFEM import solveProblem
+
+# Auxiliary stuff
+from nonvarFEM.helpers import standardOptions, writeOutputToCsv
+
+# Nice organization of results
 import pandas as pd
 
-WRITE_CSV = False
+WRITE_CSV = True
 
 if __name__ == "__main__":
     kappa_list = [0.9, 0.99, 0.999]
@@ -38,15 +47,16 @@ if __name__ == "__main__":
             opt["stabilizationConstant1"] = eta
             opt["stabilizationConstant2"] = 0
             opt["id"] = "Cinfty_eta_{}_kappa_{}_".format(eta, kappa)
-            P = NVP.Cinfty(kappa)
+            P = Cinfty(kappa)
             df = solveProblem(P, opt)
             if i == 0 and j == 0:
-                out['h'] = ['2^{{-{}}}'.format(j+3)
+                out['h'] = ['2^{{-{}}}'.format(j + 3)
                             for j in range(df.shape[0])]
             out['eta_{}_kappa_{}'.format(
                 eta, kappa)] = df.loc[:, 'N_iter'].astype('int')
 
     # Write csv file
     if WRITE_CSV:
-        out.to_csv('res_exp1/gmres_iter.csv')
+        opt['id'] = 'gmres_iter'
+        writeOutputToCsv(out, opt)
     print(out)
