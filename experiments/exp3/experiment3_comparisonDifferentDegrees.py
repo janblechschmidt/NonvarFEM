@@ -44,7 +44,7 @@ if __name__ == "__main__":
     global_opt["id"] = "FNS_5_4"
 
     # Threshold for dofs
-    global_opt["NdofsThreshold"] = 1000
+    global_opt["NdofsThreshold"] = 50000
 
     # Determine method to estimate error norms
     global_opt["errorEstimationMethod"] = 1
