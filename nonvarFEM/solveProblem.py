@@ -14,7 +14,7 @@ from nonvarFEM.norms import EdgeJump_norm, H20_norm, H10_norm, L2_norm
 
 def solveProblem(P, opt):
 
-    set_log_level(21)
+    set_log_level(opt['dolfinLogLevel'])
 
     parameters["reorder_dofs_serial"] = False
     # parameters['form_compiler']['quadrature_rule'] = 'vertex'

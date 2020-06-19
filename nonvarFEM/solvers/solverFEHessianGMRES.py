@@ -1,8 +1,11 @@
 from dolfin import Function, TestFunction, TrialFunction, Constant
 from dolfin import DirichletBC, as_backend_type, assemble, interpolate, assign
 from dolfin import project, inner, grad, avg, dx, dS, ds
-import matplotlib.pyplot as plt
+
 import ufl
+from ufl.conditional import Conditional
+
+import matplotlib.pyplot as plt
 
 from time import time
 import sys
@@ -28,7 +31,12 @@ def checkForZero(this_a):
             return True
         else:
             return False
+    elif isinstance(this_a, Conditional):
+        return False
     else:
+        print('Unknown instance in check for zeros')
+        import ipdb
+        ipdb.set_trace()
         raise ValueError('Unknown instance in check for zeros')
 
 

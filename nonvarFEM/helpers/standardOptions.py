@@ -26,6 +26,7 @@ def standardOptions():
     opt["gmresTolRes"] = 1e-10  # GMRES tolerance (abs and rel)
 
     opt["errorEstimationMethod"] = 1
+    opt["dolfinLogLevel"] = 21
 
     # Choose options for output during computation
     opt["plotMesh"] = 0   # Plot mesh flag

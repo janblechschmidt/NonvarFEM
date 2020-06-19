@@ -1,8 +1,6 @@
 import sys
 sys.path.insert(0, '../..')
 
-from dolfin import set_log_level
-
 # Problem to solve
 from nonvarFEM.problems.testsNVP import Cinfty
 
@@ -15,8 +13,6 @@ import nonvarFEM.helpers as hlp
 # Nice organization of results
 import pandas as pd
 
-CSV_DIR = './results/Degree_Study/'
-PREFIX = 'degree_study_qd100_'
 WRITE_CSV = True
 
 
@@ -37,8 +33,6 @@ def degreeStudy(P, opt, minDegree=1, maxDegree=4, filename=None):
 
 
 if __name__ == "__main__":
-
-    set_log_level(21)
 
     global_opt = hlp.standardOptions()
 
@@ -138,5 +132,3 @@ if __name__ == "__main__":
         if WRITE_CSV:
             fname = global_opt['id'] + '_deg_{}'.format(deg + 1)
             hlp.writeOutputToCsv(df, global_opt, fname)
-            # df.to_csv(CSV_DIR + PREFIX +
-            #           global_opt['id'] + '_deg_{}.csv'.format(deg + 1))

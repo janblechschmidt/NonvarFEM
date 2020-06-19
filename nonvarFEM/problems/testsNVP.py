@@ -544,9 +544,8 @@ class FNS_5_4_L_inf_Coeffs(NVP):
         # Init coefficient matrix
         x, y = SpatialCoordinate(self.mesh)
 
-        self.a = conditional(x*y > 0,
-                             as_matrix([[2.0, 1.0], [1.0, 2.0]]),
-                             as_matrix([[2.0, -1.0], [-1.0, 2.0]]))
+        off_diag = conditional(x * y > 0, 1.0, -1.0)
+        self.a = as_matrix([[2.0, off_diag], [off_diag, 2.0]])
 
         self.u_ = x*y*(1-exp(1-abs(x))) * (1-exp(1-abs(y)))
 
