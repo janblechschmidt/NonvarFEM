@@ -42,8 +42,8 @@ def solverNeilan(P, opt):
 
     # Adjust system matrix and load vector in case of time-dependent problem
     if P.isTimeDependant:
-        a_h += 1./P.dt * trial_u * test_u * dx
-        f_h += 1./P.dt * P.u_np1 * test_u * dx
+        a_h += 1. / P.dt * trial_u * test_u * dx
+        f_h += 1. / P.dt * P.u_np1 * test_u * dx
 
     # Set boundary conditions
     print('Setting boundary conditions')
@@ -62,12 +62,20 @@ def solverNeilan(P, opt):
         t1 = time()
 
     S, rhs = assemble_system(a_h, f_h, bc_V)
-    solve(S, P.x.vector(), rhs)
+    try:
+        solve(S, P.x.vector(), rhs)
+
+    except RuntimeError:
+        try:
+            solve(S, P.x.vector(), rhs, 'gmres', 'hypre_amg')
+        except RuntimeError:
+            import ipdb
+            ipdb.set_trace()
 
     N_iter = 1
 
     if opt['time_check']:
-        print("Solve linear equation system ... %.2fs" % (time()-t1))
+        print("Solve linear equation system ... %.2fs" % (time() - t1))
         sys.stdout.flush()
 
     return N_iter
