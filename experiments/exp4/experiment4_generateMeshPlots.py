@@ -1,22 +1,26 @@
-from nvfem import solveProblem
-import problems.testsNVP as NVP
-import dolfin
+import sys
+sys.path.insert(0, '../..')
 
-from stats.writeOutputToCsv import writeOutputToCsv
-from standardOptions import *
+# Problem to solve
+from nonvarFEM.problems.testsNVP import Discontinuous_A
+
+# Solve routine
+from nonvarFEM import solveProblem
+
+# Auxiliary stuff
+import nonvarFEM.helpers as hlp
 
 if __name__ == "__main__":
 
-    dolfin.set_log_level(21)
-    
+    # Load problem
+    P = Discontinuous_A()
+
     # Load standard options
-    global_opt = standardOptions()
+    global_opt = hlp.standardOptions()
 
-    # Discontinuous A
-    P = NVP.Discontinuous_A()
-    global_opt["id"] = 'experiment4'
+    global_opt["id"] = 'Discontinuous_A'
 
-    global_opt["NdofsThreshold"]   = 30000
+    global_opt["NdofsThreshold"] = 30000
     # Fix polynomial degree
     global_opt["p"] = 2
     global_opt["q"] = 2
@@ -26,7 +30,8 @@ if __name__ == "__main__":
     global_opt["saveSolution"] = 1
     global_opt["meshRefinement"] = 2
     global_opt["refinementThreshold"] = .95
+    global_opt["writeToCsv"] = 0
 
     # Determine method to estimate error norms
     global_opt["errorEstimationMethod"] = 1
-    df = solveProblem(P, opt_Own_CG_1_stab(global_opt))
+    df = solveProblem(P, hlp.opt_Own_CG_1_stab(global_opt))
