@@ -42,7 +42,6 @@ if __name__ == "__main__":
 
     # Threshold for dofs
     global_opt["NdofsThreshold"] = 100000
-    global_opt["NdofsThreshold"] = 1000
 
     # Fix polynomial degree
     global_opt["p"] = 2
