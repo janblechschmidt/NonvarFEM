@@ -1,69 +1,89 @@
-import dolfin
+import sys
+sys.path.insert(0, '../..')
 
-from solve import solveProblem
-import problems.testsNVP as NVP
+# Problem to solve
+from nonvarFEM.problems.testsNVP import Sol_in_H_alpha_3d
 
-from stats.writeOutputToCsv import writeOutputToCsv
-from standardOptions import standardOptions
+# Solve routine
+from nonvarFEM import solveProblem
 
-CSV_DIR = './results/Sol_in_H_alpha_3d/new_'
+# Auxiliary stuff
+import nonvarFEM.helpers as hlp
+
 WRITE_CSV = True
 
-if __name__ == "__main__":
 
-    dolfin.set_log_level(21)
+def experiment(P, opt, expname):
+    # First run with regular refinement
+    opt["meshRefinement"] = 1
+    df_uniform = solveProblem(P, opt)
+    if WRITE_CSV:
+        fname = '{}_{}_uniform'.format(opt['id'], expname)
+        hlp.writeOutputToCsv(df_uniform, opt, fname)
+
+    # Second run with adaptive refinement
+    opt["meshRefinement"] = 2
+    opt["refinementThreshold"] = 0.95
+    df_adaptive = solveProblem(P, opt)
+    if WRITE_CSV:
+        fname = '{}_{}_adaptive'.format(opt['id'], expname)
+        hlp.writeOutputToCsv(df_adaptive, opt, fname)
+
+
+if __name__ == "__main__":
 
     """
     Global settings
     """
-    opt = standardOptions()
-    opt["initialMeshResolution"] = 2
+    global_opt = hlp.standardOptions()
+    global_opt["initialMeshResolution"] = 2
 
     alpha = 0.75
-    P = NVP.Sol_in_H_alpha_3d(alpha)
+    global_opt["id"] = 'Sol_in_H_2.25'
 
-    opt["id"] = '3d_alpha_deg2_0_75_'
+    # alpha = 0.5
+    # global_opt["id"] = 'Sol_in_H_2.00'
+
+    P = Sol_in_H_alpha_3d(alpha)
+
+    global_opt["NdofsThreshold"] = 4000
 
     # Fix polynomial degree
-    opt["p"] = 2
-    opt["q"] = 2
+    global_opt["p"] = 2
+    global_opt["q"] = 2
 
     # Determine method to estimate error norms
-    opt["errorEstimationMethod"] = 1
+    global_opt["errorEstimationMethod"] = 1
 
-    # Specify experiments method
     """
     Designing the different experiments.
     """
-    # Own uniform
-    opt["NdofsThreshold"] = 32000
-    opt["solutionMethod"] = 'FEHessianGmres'
-    opt["meshRefinement"] = 1
-    opt["stabilizationFlag"] = 0
-    df = solveProblem(P, opt)
-    if WRITE_CSV:
-        writeOutputToCsv(CSV_DIR + opt['id'] +
-                         'CG_0_stab' + '_uniform.csv', df)
+    #
+    # experiment(P,
+    #         hlp.opt_Neilan(global_opt),
+    #         'Neilan')
+    #
+    # experiment(P,
+    #         hlp.opt_NeilanSalgadoZhang(global_opt),
+    #         'NeilanSalgadoZhang')
+    #
+    experiment(P,
+               hlp.opt_Own_CG_0_stab(global_opt),
+               'CG_0_stab')
 
-    # Own adaptive
-    # opt["NdofsThreshold"] = 25000
-    # opt["solutionMethod"] = 'FEHessianGmres'
-    # opt["meshRefinement"] = 2
-    # opt["refinementThreshold"] = 0.9
-    # opt["stabilizationFlag"] = 0
-    # df = solveProblem(P, opt)
-    # if WRITE_CSV:
-    #     writeOutputToCsv(CSV_DIR + opt['id'] +
-    #                      'CG_0_stab' + '_adaptive.csv', df)
+    # experiment(P,
+    #            hlp.opt_Own_CG_1_stab(global_opt),
+    #            'CG_1_stab')
 
-    # # Neilan, Salgado, Zhang approach
-    # opt["NdofsThreshold"] = 32000
-    # opt["solutionMethod"] = 'NeilanSalgadoZhang'
-    # opt["meshRefinement"] = 1
-    # opt["stabilizationFlag"] = 1
-    # opt["stabilityConstant1"] = 1.0  # Stability constant for first-order term
-    # opt["stabilityConstant2"] = 0  # Stability constant for second-order term
-    # df = solveProblem(P, opt)
-    # if WRITE_CSV:
-    #     writeOutputToCsv(CSV_DIR + opt['id'] +
-    #                      'NeilanSalgadoZhang' + '_uniform.csv', df)
+    # experiment(P,
+    #         hlp.opt_Own_CG_2_stab(global_opt),
+    #         'CG_2_stab')
+    #
+    # experiment(P,
+    #         hlp.opt_Own_DG_0_stab(global_opt),
+    #         'DG_0_stab')
+    #
+    # experiment(P,
+    #         hlp.opt_Own_DG_1_stab(global_opt),
+    #         'DG_1_stab')
+    #

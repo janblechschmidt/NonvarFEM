@@ -52,8 +52,6 @@ if __name__ == "__main__":
         global_opt["errorEstimationMethod"] = 1
         global_opt["writeToCsv"] = 0
 
-        # Specify experiments method
-
         """
         Designing the different experiments.
         """
