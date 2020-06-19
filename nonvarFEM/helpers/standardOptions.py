@@ -68,6 +68,7 @@ def standardOptions():
 
 def opt_NeilanSalgadoZhang(opt=standardOptions()):
     opt["solutionMethod"] = 'NeilanSalgadoZhang'
+    opt["HessianSpace"] = "CG"
     opt["stabilizationFlag"] = 1  # first-order stabilization
     opt["stabilityConstant1"] = 1.0  # Stability constant for first-order term
     opt["stabilityConstant2"] = 0  # Stability constant for second-order term
