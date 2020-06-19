@@ -9,6 +9,7 @@ SL_Asian_working.py
 
 # Jupyter notebooks for testing
 notebooks/
+experiments/exp6
 
 # Todo list
 todo.md

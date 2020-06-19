@@ -23,6 +23,7 @@ class Sol_in_H_alpha(NVP):
     """
     Example problem whose solution is in H^s with s < 1+\alpha
     """
+
     def __init__(self, alpha=1.5):
 
         # Set paramater
@@ -38,7 +39,7 @@ class Sol_in_H_alpha(NVP):
         # Set up explicit solution
         r = sqrt(x**2 + y**2)
         phi = atan_2(x, y)
-        self.u_ = r**self.alpha * sin(2. * phi) * (1-x) * (1-y)
+        self.u_ = r**self.alpha * sin(2. * phi) * (1 - x) * (1 - y)
 
         # Init right-hand side
         self.f = inner(self.a, grad(grad(self.u_)))
@@ -54,8 +55,9 @@ class Sol_in_H_alpha(NVP):
 
 class Sol_in_H_alpha_3d(NVP):
     """
-    Example problem whose solution is in H^s with s < 1.5+\alpha
+    Example problem whose solution is in $H^s$ with $s < 1.5+\alpha$
     """
+
     def __init__(self, alpha=1.):
 
         # Set paramater
@@ -71,8 +73,9 @@ class Sol_in_H_alpha_3d(NVP):
                             [Constant(0.), Constant(0.), 1.]])
 
         # Set up explicit solution
-        r = sqrt((x-.5)**2 + (y-.5)**2 + (z-.5)**2)
-        self.u_ = r**self.alpha * x * y * z * (1-x) * (1-y) * (1-z)
+        Z = [0.0, 0.0, 0.0]
+        r = sqrt(pow(x - Z[0], 2) + pow(y - Z[1], 2) + pow(z - Z[2], 2))
+        self.u_ = r**self.alpha * (1 - x)**2 * (1 - y)**2 * (1 - z)**2
 
         # Init right-hand side
         self.f = inner(self.a, grad(grad(self.u_)))
@@ -82,8 +85,10 @@ class Sol_in_H_alpha_3d(NVP):
 
     def initMesh(self, n):
 
-        # Set mesh to square on [0,1]^3
-        self.mesh = BoxMesh(Point(0., 0., 0.), Point(1., 1., 1.), n, n, n)
+        # Set mesh to square on [-1, 1]^3
+        self.mesh = BoxMesh(Point(-1., -1., -1.), Point(1., 1., 1.), n, n, n)
+        # Set mesh to square on [0, 1]^3
+        # self.mesh = BoxMesh(Point(0., 0., 0.), Point(1., 1., 1.), n, n, n)
 
 # --------------------------------------------------
 # Test example for which Cordes condition is
@@ -105,7 +110,7 @@ class No_Cordes(NVP):
         self.a = as_matrix([[1.0, self.kappa], [self.kappa, 1.0]])
 
         # Init right-hand side
-        self.f = (1 + x**2) * sin(pi*x) * sin(2*pi*y)
+        self.f = (1 + x**2) * sin(pi * x) * sin(2 * pi * y)
 
         # Set boundary conditions to exact solution
         self.g = Constant(0.0)
@@ -126,7 +131,7 @@ class Poisson(NVP):
         x, y = SpatialCoordinate(self.mesh)
 
         self.a = as_matrix([[1., 0.], [0., 1.]])
-        self.u_ = sin(pi*x) * sin(pi*y)
+        self.u_ = sin(pi * x) * sin(pi * y)
 
         self.f = inner(self.a, grad(grad(self.u_)))
 
@@ -147,7 +152,7 @@ class Poisson_inhomoBC(NVP):
         x, y = SpatialCoordinate(self.mesh)
 
         self.a = as_matrix([[1., 0.], [0., 1.]])
-        self.u_ = x*(1-x) + y*(1-y)
+        self.u_ = x * (1 - x) + y * (1 - y)
         # self.u_ = sin(x)*exp(cos(y))
 
         self.f = inner(self.a, grad(grad(self.u_)))
@@ -172,8 +177,8 @@ class Cinfty(NVP):
         x, y = SpatialCoordinate(self.mesh)
 
         self.a = as_matrix([[Constant(1.), Constant(self.kappa)],
-            [Constant(self.kappa), Constant(1.)]])
-        self.u_ = sin(2*pi*x) * sin(2*pi*y)
+                            [Constant(self.kappa), Constant(1.)]])
+        self.u_ = sin(2 * pi * x) * sin(2 * pi * y)
 
         self.f = inner(self.a, grad(grad(self.u_)))
 
@@ -196,7 +201,7 @@ class Discontinuous_A(NVP):
         x, y = SpatialCoordinate(self.mesh)
 
         self.a = as_matrix(
-            [[.02, .01], [0.01, conditional(x*x*x-y > 0.0, 2.0, 1.0)]])
+            [[.02, .01], [0.01, conditional(x**3 - y > 0.0, 2.0, 1.0)]])
 
         # Init right-hand side
         self.f = -1.0
