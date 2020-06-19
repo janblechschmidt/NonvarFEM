@@ -1,6 +1,6 @@
 import itertools
 import numpy as np
-
+import os
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
 from nonvarFEM.helpers.plotErrorEstimates import plotErrorEstimates
@@ -133,14 +133,18 @@ class NVP:
             self.plotMesh()
 
             if opt["saveMesh"]:
+
                 plt.axis("off")
                 plt.subplots_adjust(top=1, bottom=0, right=1, left=0,
                                     hspace=0, wspace=0)
                 plt.margins(0, 0)
                 plt.gca().xaxis.set_major_locator(plt.NullLocator())
                 plt.gca().yaxis.set_major_locator(plt.NullLocator())
-                plt.savefig('./pdf/' + opt["id"] + '_mesh_dimV_%05d.pdf' %
-                            self.solDofs(opt), bbox_inches='tight', pad_inches=0)
+
+                os.makedirs(opt['outputDir'], exist_ok=True)
+                fname = '{}_mesh_dimV_{:06d}.pdf'.format(opt['id'], self.solDofs(opt))
+                thisPath = os.path.join(opt['outputDir'], fname)
+                plt.savefig(thisPath, bbox_inches='tight', pad_inches=0)
 
         if opt["plotSolution"]:
 
@@ -150,8 +154,8 @@ class NVP:
                 self.plotFEHessian()
 
         if opt["saveSolution"]:
-            file = File("./pvd/" + opt["id"] + '_' +
-                        '_sol_dimV_%05d.pvd' % self.solDofs(opt))
+            fname = "{}_sol_dimV_{:06d}.pvd".format(opt["id"], self.solDofs(opt))
+            file = File(os.path.join(opt['outputDir'], fname))
             file << self.u
 
     def plotMesh(self, fig=None):
