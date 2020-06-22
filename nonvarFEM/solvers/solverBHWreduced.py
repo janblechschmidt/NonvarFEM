@@ -42,16 +42,19 @@ def checkForZero(this_a):
 
 def spy(A):
     ind = A > 0
-    # try:
-    #     ind = A > 0
-    # except:
-    #     ind = A.array() > 0
-    xi, yi = np.where(ind)
+
+    try:
+        xi, yi = np.where(ind)
+    except ValueError:
+        xi, yi = np.where(ind.toarray())
+
     plt.scatter(xi, yi, s=1)
+
     ax = plt.gca()
     ylim = ax.get_ylim()
     ax.set_ylim([ylim[1], ylim[0]])
     ax.legend()
+
     plt.show()
 
 
@@ -115,7 +118,8 @@ def solverBHWreduced(P, opt):
         return S[idx_inner, :][:, idx_bnd]
 
     # Assemble mass matrix and store LU decomposition
-    M_W = spmat(assemble(trial_p*test_p*dx))
+    M_W = spmat(assemble(trial_p * test_p * dx))
+    # spy(M_W)
 
     if opt['time_check']:
         t1 = time()
@@ -123,7 +127,7 @@ def solverBHWreduced(P, opt):
     M_LU = la.splu(M_W)
 
     if opt['time_check']:
-        print("Compute LU decomposition of M_W ... %.2fs" % (time()-t1))
+        print("Compute LU decomposition of M_W ... %.2fs" % (time() - t1))
         sys.stdout.flush()
 
     # Check for constant zero entries in diffusion matrix
@@ -145,7 +149,7 @@ def solverBHWreduced(P, opt):
                 print('Ignore value ({},{})'.format(i, j))
 
     def emptyMat(d=P.dim()):
-        return [[None]*d for i in range(d)]
+        return [[None] * d for i in range(d)]
 
     # Assemble weighted mass matrices
     B = emptyMat()
@@ -161,8 +165,8 @@ def solverBHWreduced(P, opt):
         this_form = -trial_u.dx(i) * test_p.dx(j) * \
             dx + trial_u.dx(i) * test_p * P.nE[j] * ds
         if opt["HessianSpace"] == 'DG':
-            this_form += avg(trial_u.dx(i)) * (test_p('+') *
-                                               P.nE[j]('+') + test_p('-')*P.nE[j]('-')) * dS
+            this_form += avg(trial_u.dx(i)) \
+                * (test_p('+') * P.nE[j]('+') + test_p('-') * P.nE[j]('-')) * dS
         return this_form
 
     # Ensure the diagonal is set up, necessary for the FE Laplacian
@@ -205,13 +209,13 @@ def solverBHWreduced(P, opt):
     def S_II_times_u(x):
         Dv = [B[i][j] * M_LU.solve(_i2a(C[i][j]) * x) for i, j in nzs]
         w = M_LU.solve(sum(Dv))
-        return (_i2a(C_lapl)).transpose() * w + _i2i(S)*x
+        return (_i2a(C_lapl)).transpose() * w + _i2i(S) * x
 
     # Set up matrix-vector product for boundary nodes
     def S_IB_times_u(x):
         Dv = [B[i][j] * M_LU.solve(_b2a(C[i][j]) * x) for i, j in nzs]
         w = M_LU.solve(sum(Dv))
-        return (_i2a(C_lapl)).transpose() * w + _b2i(S)*x
+        return (_i2a(C_lapl)).transpose() * w + _b2i(S) * x
 
     # Assemble f_W
     f_W = assemble(gamma * P.f * test_p * dx)
@@ -233,7 +237,7 @@ def solverBHWreduced(P, opt):
     rhs -= M_bnd * g_bc
 
     # Set up preconditioner
-    M_W_DiagInv = sp.spdiags(1./M_W.diagonal(), np.array([0]), NW, NW)
+    M_W_DiagInv = sp.spdiags(1. / M_W.diagonal(), np.array([0]), NW, NW)
     D = [B[i][j] * M_W_DiagInv * _i2a(C[i][j]) for i, j in nzs]
     Prec = (_i2a(C_lapl)).transpose() * M_W_DiagInv * sum(D) + _i2i(S)
 

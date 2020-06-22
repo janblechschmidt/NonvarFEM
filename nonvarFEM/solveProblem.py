@@ -16,7 +16,7 @@ def solveProblem(P, opt):
 
     set_log_level(opt['dolfinLogLevel'])
 
-    parameters["reorder_dofs_serial"] = False
+    # parameters["reorder_dofs_serial"] = False
     # parameters['form_compiler']['quadrature_rule'] = 'vertex'
     # parameters["form_compiler"]["quadrature_degree"] = 15
     # parameters['ghost_mode'] = 'shared_facet'
@@ -32,7 +32,7 @@ def solveProblem(P, opt):
     else:
         n_range = [opt["initialMeshResolution"]]
 
-    print('-'*50+'\n')
+    print('-' * 50 + '\n')
 
     if opt["meshRefinement"]:
         n = opt["initialMeshResolution"]
@@ -156,7 +156,7 @@ def solveProblem(P, opt):
 
         for (k, u) in enumerate(U):
 
-            print("Compute errors on mesh level %i / %i" % (k+1, len(U)))
+            print("Compute errors on mesh level %i / %i" % (k + 1, len(U)))
 
             # Interpolate u_k on the finest mesh
             u = interpolate(u, P.V)

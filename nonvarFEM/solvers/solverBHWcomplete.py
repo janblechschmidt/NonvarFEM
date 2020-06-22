@@ -102,26 +102,26 @@ def solverBHWcomplete(P, opt):
     # S, rhs = assemble_system(a, L, bc_V)
     # solve(S, P.x.vector(), rhs)
     solve(a == L, P.x, bc_V, solver_parameters={'linear_solver': 'mumps'})
-    import ipdb
-    ipdb.set_trace()
+    # import ipdb
+    # ipdb.set_trace()
 
-    TEST_RITZ = False
-    if TEST_RITZ:
-        ufl_cell = P.mesh.ufl_cell()
-        CG2 = FunctionSpace(P.mesh, FiniteElement("CG", ufl_cell, 2))
-        uh = TrialFunction(CG2)
-        vh = TestFunction(CG2)
+    # TEST_RITZ = False
+    # if TEST_RITZ:
+    #     ufl_cell = P.mesh.ufl_cell()
+    #     CG2 = FunctionSpace(P.mesh, FiniteElement("CG", ufl_cell, 2))
+    #     uh = TrialFunction(CG2)
+    #     vh = TestFunction(CG2)
 
-        ah = -inner(grad(uh),grad(vh)) * dx
-        fh = P.f * vh * dx
-        ustar = Function(CG2)
-        solve(ah == fh, ustar, DirichletBC(CG2, P.g, 'on_boundary'))
-        c = plot(P.u - ustar)
-        import matplotlib.pyplot as plt
-        plt.colorbar(c)
-        plt.show()
-        import ipdb
-        ipdb.set_trace()
+    #     ah = -inner(grad(uh),grad(vh)) * dx
+    #     fh = P.f * vh * dx
+    #     ustar = Function(CG2)
+    #     solve(ah == fh, ustar, DirichletBC(CG2, P.g, 'on_boundary'))
+    #     c = plot(P.u - ustar)
+    #     import matplotlib.pyplot as plt
+    #     plt.colorbar(c)
+    #     plt.show()
+    #     import ipdb
+    #     ipdb.set_trace()
 
 
 
