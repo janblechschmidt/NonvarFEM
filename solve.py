@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     opt["plotSolution"] = 1
     opt["plotErrorEstimates"] = 0
-    opt["plotErrorRates"] = 0
+    opt["plotConvergenceRates"] = 0
     opt["plotMesh"] = 0
     opt["saveMesh"] = 0
     opt["holdOn"] = 1

@@ -182,8 +182,8 @@ def solveProblem(P, opt):
     if len(n_range) > 1:
         df = hlp.determineEOCforDataframe(P.dim(), df)
 
-        if opt["plotErrorRates"]:
-            hlp.plotError(df)
+        if opt["plotConvergenceRates"]:
+            hlp.plotConvergenceRates(df)
 
     if opt["writeToCsv"]:
         hlp.writeOutputToCsv(df, opt)

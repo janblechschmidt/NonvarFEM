@@ -32,7 +32,7 @@ def standardOptions():
     opt["plotMesh"] = 0   # Plot mesh flag
     opt["plotSolution"] = 0   # Plot solution flag
     opt["plotErrorEstimates"] = 0   # Plot error estimates flag
-    opt["plotErrorRates"] = 0   # Plot of error rates at the end
+    opt["plotConvergenceRates"] = 0   # Plot of error rates at the end
     opt["zAxisMin"] = 0.0   # Option to fix range of z axis
     opt["zAxisMax"] = 0.0   # Option to fix range of z axis
     opt["time_check"] = 1  # Print computation times
