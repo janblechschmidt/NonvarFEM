@@ -11,7 +11,7 @@ def standardOptions():
     opt["q"] = 2  # Dimension of space of Hessians
     opt["r"] = 2  # Dimension of space of gradients
 
-    opt["normalizeA"] = 1  # Normalize A
+    opt["normalizeSystem"] = 1  # Normalize A
     # Normalization parameter (should be optimized, is problem specific)
     opt["lambda"] = 1
     opt["HessianSpace"] = 'CG'
@@ -79,7 +79,7 @@ def opt_NeilanSalgadoZhang(opt=standardOptions()):
 def opt_Neilan(opt=standardOptions()):
     opt["solutionMethod"] = 'Neilan'
     opt["HessianSpace"] = "DG"
-    opt["normalizeA"] = 0  # No normalization
+    opt["normalizeSystem"] = 0  # No normalization
     return opt
 
 

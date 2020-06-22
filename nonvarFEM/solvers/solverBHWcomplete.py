@@ -99,9 +99,11 @@ def solverBHWcomplete(P, opt):
     if opt['time_check']:
         t1 = time()
 
-    # S, rhs = assemble_system(a, L, bc_V)
-    # solve(S, P.x.vector(), rhs)
     solve(a == L, P.x, bc_V, solver_parameters={'linear_solver': 'mumps'})
+
+    # The following does not converge
+    # S, rhs = assemble_system(a, L, bc_V)
+    # solve(S, P.x.vector(), rhs, 'gmres', 'hypre_amg')
     # import ipdb
     # ipdb.set_trace()
 

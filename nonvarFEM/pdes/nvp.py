@@ -82,7 +82,7 @@ class NVP:
         return eta
 
     def normalizeSystem(self, opt):
-        if opt["normalizeA"]:
+        if opt["normalizeSystem"]:
 
             gamma_nom = tr(self.a)
             gamma_denom = inner(self.a, self.a)

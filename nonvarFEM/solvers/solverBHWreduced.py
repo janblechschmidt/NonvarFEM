@@ -80,7 +80,6 @@ def solverBHWreduced(P, opt):
     ''' Function to solve the second-order pde in
     nonvariational formulation using gmres '''
 
-    # gamma = tr(P.a) / inner(P.a,P.a) if opt["normalizeA"] else 1.0
     gamma = P.normalizeSystem(opt)
 
     # Extract local space of tensor space W_h

@@ -32,28 +32,28 @@ if __name__ == "__main__":
     opt["plotMesh"] = 0
     opt["saveMesh"] = 0
     opt["holdOn"] = 0
-    opt["normalizeA"] = 1
+    opt["normalizeSystem"] = 0
     opt["meshRefinement"] = 1
 
     opt["refinementThreshold"] = .80
     opt["p"] = 2
     opt["q"] = 2
     opt["HessianSpace"] = "CG"
-    opt["NdofsThreshold"] = 4000
+    opt["NdofsThreshold"] = 5000
     opt["errorEstimationMethod"] = 1
     opt["time_check"] = 1
     opt["stabilizationFlag"] = 0
     opt["stabilityConstant1"] = 2  # Stability constant for first-order term
     opt["stabilityConstant2"] = 0  # Stability constant for second-order term
-    opt["solutionMethod"] = 'BHWcomplete'
-    # opt["solutionMethod"] = 'BHWreduced'
+    # opt["solutionMethod"] = 'BHWcomplete'
+    opt["solutionMethod"] = 'BHWreduced'
     # opt["solutionMethod"] = 'NeilanSalgadoZhang'
     # opt["solutionMethod"] = 'Neilan'
 
     # P = NVP.Cinfty(0.99)
     # alpha = 1.5
     # P = NVP.Sol_in_H_alpha(alpha)
-    alpha = 0.75
+    alpha = 0.5
     P = NVP.Sol_in_H_alpha_3d(alpha)
     # P = NVP.No_Cordes()
     # P = NVP.Poisson()

@@ -124,6 +124,7 @@ def solveProblem(P, opt):
         eta_est = np.sum(np.power(eta, 2))
         df.loc[k, 'Eta_global'] = eta_est
 
+        # Mesh refinement
         if opt["meshRefinement"] > 0:
             if ndofs < opt["NdofsThreshold"]:
                 # Refine mesh depending on the strategy
