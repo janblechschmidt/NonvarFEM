@@ -28,7 +28,7 @@ if __name__ == "__main__":
 
     opt["plotSolution"] = 1
     opt["plotErrorEstimates"] = 0
-    opt["plotConvergenceRates"] = 0
+    opt["plotConvergenceRates"] = 1
     opt["plotMesh"] = 0
     opt["saveMesh"] = 0
     opt["holdOn"] = 1
@@ -50,11 +50,11 @@ if __name__ == "__main__":
     # opt["solutionMethod"] = 'NeilanSalgadoZhang'
     # opt["solutionMethod"] = 'Neilan'
 
-    # P = NVP.Cinfty(0.99)
+    P = NVP.Cinfty(0.99)
     # alpha = 1.5
     # P = NVP.Sol_in_H_alpha(alpha)
-    alpha = 0.75
-    P = NVP.Sol_in_H_alpha_3d(alpha)
+    # alpha = 0.75
+    # P = NVP.Sol_in_H_alpha_3d(alpha)
     # P = NVP.No_Cordes()
     # P = NVP.Poisson()
     # P = NVP.Poisson_inhomoBC()
