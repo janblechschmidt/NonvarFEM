@@ -73,8 +73,9 @@ class Sol_in_H_alpha_3d(NVP):
                             [Constant(0.), Constant(0.), 1.]])
 
         # Set up explicit solution
-        Z = [0.0, 0.0, 0.0]
-        r = sqrt(pow(x - Z[0], 2) + pow(y - Z[1], 2) + pow(z - Z[2], 2))
+        print('Chosen alpha is {}'.format(self.alpha))
+        print('Solution is in H^{}'.format(1.5+self.alpha))
+        r = sqrt(x**2 + y**2 + z**2)
         self.u_ = r**self.alpha * (1 - x)**2 * (1 - y)**2 * (1 - z)**2
 
         # Init right-hand side

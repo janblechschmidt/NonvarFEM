@@ -39,7 +39,7 @@ if __name__ == "__main__":
     opt["p"] = 2
     opt["q"] = 2
     opt["HessianSpace"] = "CG"
-    opt["NdofsThreshold"] = 5000
+    opt["NdofsThreshold"] = 4000
     opt["errorEstimationMethod"] = 1
     opt["time_check"] = 1
     opt["stabilizationFlag"] = 0
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     # P = NVP.Cinfty(0.99)
     # alpha = 1.5
     # P = NVP.Sol_in_H_alpha(alpha)
-    alpha = 0.5
+    alpha = 0.25
     P = NVP.Sol_in_H_alpha_3d(alpha)
     # P = NVP.No_Cordes()
     # P = NVP.Poisson()
