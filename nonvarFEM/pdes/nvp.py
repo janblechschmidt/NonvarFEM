@@ -13,7 +13,7 @@ from dolfin import FiniteElement, TensorElement, MixedElement
 from dolfin import FunctionAssigner
 
 # Import solvers
-from nonvarFEM.solvers import solverFEHessianDirect, solverFEHessianGMRES
+from nonvarFEM.solvers import solverBHWcomplete, solverBHWreduced
 from nonvarFEM.solvers import solverNeilanSalgadoZhang, solverNeilan
 
 from nonvarFEM.norms import vj
@@ -28,11 +28,11 @@ class NVP:
 
     def solve(self, opt):
 
-        if opt["solutionMethod"] == 'FEHessianDirect':
-            N_iter = solverFEHessianDirect(self, opt)
+        if opt["solutionMethod"] == 'BHWcomplete':
+            N_iter = solverBHWcomplete(self, opt)
 
-        elif opt["solutionMethod"] == 'FEHessianGmres':
-            N_iter = solverFEHessianGMRES(self, opt)
+        elif opt["solutionMethod"] == 'BHWreduced':
+            N_iter = solverBHWreduced(self, opt)
 
         elif opt["solutionMethod"] == 'NeilanSalgadoZhang':
             N_iter = solverNeilanSalgadoZhang(self, opt)
@@ -441,7 +441,7 @@ class NVP:
     def updateFunctionSpaces(self, opt):
 
         m_ufl_cell = self.mesh.ufl_cell()
-        if opt["solutionMethod"] == 'FEHessianDirect':
+        if opt["solutionMethod"] == 'BHWcomplete':
             self.HElement = TensorElement(
                 opt['HessianSpace'], m_ufl_cell, opt["q"])
             self.pElement = FiniteElement(

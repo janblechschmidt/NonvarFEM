@@ -26,7 +26,7 @@ if __name__ == "__main__":
     opt["q"] = 2
 
     # We want to compare gmres iteration numbers
-    opt["solutionMethod"] = 'FEHessianGmres'
+    opt["solutionMethod"] = 'BHWreduced'
     # Regular refinement
     opt["meshRefinement"] = 1
     # Initial mesh resolution h = 2^-3

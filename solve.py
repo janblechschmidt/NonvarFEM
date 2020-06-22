@@ -46,7 +46,7 @@ if __name__ == "__main__":
     opt["stabilityConstant1"] = 2  # Stability constant for first-order term
     opt["stabilityConstant2"] = 0  # Stability constant for second-order term
     # opt["solutionMethod"] = 'FEHessianDirect'
-    opt["solutionMethod"] = 'FEHessianGmres'
+    opt["solutionMethod"] = 'BHWreduced'
     # opt["solutionMethod"] = 'NeilanSalgadoZhang'
     # opt["solutionMethod"] = 'Neilan'
 

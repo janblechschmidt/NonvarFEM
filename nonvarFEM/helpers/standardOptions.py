@@ -16,8 +16,8 @@ def standardOptions():
     opt["lambda"] = 1
     opt["HessianSpace"] = 'CG'
     opt["GradientSpace"] = 'CG'
-    # opt["solutionMethod"] = 'FEHessianDirect'
-    # opt["solutionMethod"] = 'FEHessianGmres'
+    # opt["solutionMethod"] = 'BHWcomplete'
+    # opt["solutionMethod"] = 'BHWreduced'
     opt["solutionMethod"] = 'NeilanSalgadoZhang'
     # opt["stabilizationFlag"] = 0 # no stabilization
     opt["stabilizationFlag"] = 1  # stabilization
@@ -84,14 +84,14 @@ def opt_Neilan(opt=standardOptions()):
 
 
 def opt_Own_CG_0_stab(opt=standardOptions()):
-    opt["solutionMethod"] = 'FEHessianGmres'
+    opt["solutionMethod"] = 'BHWreduced'
     opt["HessianSpace"] = 'CG'
     opt["stabilizationFlag"] = 0  # no stabilization
     return opt
 
 
 def opt_Own_CG_1_stab(opt=standardOptions()):
-    opt["solutionMethod"] = 'FEHessianGmres'
+    opt["solutionMethod"] = 'BHWreduced'
     opt["HessianSpace"] = 'CG'
     opt["stabilizationFlag"] = 1  # first-order stabilization
     opt["stabilityConstant1"] = 1.0  # Stability constant for first-order term
@@ -100,7 +100,7 @@ def opt_Own_CG_1_stab(opt=standardOptions()):
 
 
 def opt_Own_CG_2_stab(opt=standardOptions()):
-    opt["solutionMethod"] = 'FEHessianGmres'
+    opt["solutionMethod"] = 'BHWreduced'
     opt["HessianSpace"] = 'CG'
     opt["stabilizationFlag"] = 1  # first-order stabilization
     opt["stabilityConstant1"] = 1.0  # Stability constant for first-order term
@@ -109,14 +109,14 @@ def opt_Own_CG_2_stab(opt=standardOptions()):
 
 
 def opt_Own_DG_0_stab(opt=standardOptions()):
-    opt["solutionMethod"] = 'FEHessianGmres'
+    opt["solutionMethod"] = 'BHWreduced'
     opt["HessianSpace"] = 'DG'
     opt["stabilizationFlag"] = 0  # first-order stabilization
     return opt
 
 
 def opt_Own_DG_1_stab(opt=standardOptions()):
-    opt["solutionMethod"] = 'FEHessianGmres'
+    opt["solutionMethod"] = 'BHWreduced'
     opt["HessianSpace"] = 'DG'
     opt["stabilizationFlag"] = 1  # first-order stabilization
     opt["stabilityConstant1"] = 1.0  # Stability constant for first-order term

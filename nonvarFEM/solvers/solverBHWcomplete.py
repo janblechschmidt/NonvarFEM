@@ -8,7 +8,7 @@ from nonvarFEM.norms import vj, mj
 import sys
 
 
-def solverFEHessianDirect(P, opt):
+def solverBHWcomplete(P, opt):
 
     gamma = P.normalizeSystem(opt)
 

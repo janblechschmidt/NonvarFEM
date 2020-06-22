@@ -73,7 +73,7 @@ def spmat(myM):
     return M_sparray
 
 
-def solverFEHessianGMRES(P, opt):
+def solverBHWreduced(P, opt):
     ''' Function to solve the second-order pde in
     nonvariational formulation using gmres '''
 
