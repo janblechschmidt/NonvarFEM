@@ -73,7 +73,7 @@ def spmat(myM):
     M_mat = as_backend_type(myM).mat()
     M_sparray = sp.csr_matrix(M_mat.getValuesCSR()[::-1], shape=M_mat.size)
 
-    return M_sparray
+    return M_sparray.tocsc()
 
 
 def solverBHWreduced(P, opt):
@@ -96,7 +96,8 @@ def solverBHWreduced(P, opt):
     NW = W_H_loc.dim()
 
     # Get indices of inner and boundary nodes
-    bc_V = DirichletBC(P.V, P.g, 'on_boundary')
+    # Calling DirichletBC with actual P.g calls project which is expensive
+    bc_V = DirichletBC(P.V, Constant(1), 'on_boundary')
     idx_bnd = list(bc_V.get_boundary_values().keys())
     N_bnd = len(idx_bnd)
     N_in = N - N_bnd
