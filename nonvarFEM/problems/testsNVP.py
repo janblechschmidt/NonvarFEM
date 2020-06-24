@@ -74,9 +74,14 @@ class Sol_in_H_alpha_3d(NVP):
 
         # Set up explicit solution
         print('Chosen alpha is {}'.format(self.alpha))
-        print('Solution is in H^{}'.format(1.5+self.alpha))
-        r = sqrt(x**2 + y**2 + z**2)
-        self.u_ = r**self.alpha * (1 - x)**2 * (1 - y)**2 * (1 - z)**2
+        print('Solution is in H^{}'.format(1.5 + self.alpha))
+        # r = sqrt(x**2 + y**2 + z**2)
+        r = sqrt((x - .5)**2 + (y - .5)**2 + (z - .5)**2)
+        # The following seems to be at most in H^2
+        # self.u_ = r**self.alpha * sin(2. * phi1) * sin(2.*phi2) * (1 - x) * (1 - y) * (1-z)
+        # self.u_ = r**self.alpha # * (1 - x)**2 * (1 - y)**2 * (1 - z)**2
+        # self.u_ = r**self.alpha * x * (1 - x) * y * (1 - y) * z * (1 - z)
+        self.u_ = r**self.alpha
 
         # Init right-hand side
         self.f = inner(self.a, grad(grad(self.u_)))
@@ -87,9 +92,9 @@ class Sol_in_H_alpha_3d(NVP):
     def initMesh(self, n):
 
         # Set mesh to square on [-1, 1]^3
-        self.mesh = BoxMesh(Point(-1., -1., -1.), Point(1., 1., 1.), n, n, n)
+        # self.mesh = BoxMesh(Point(-1., -1., -1.), Point(1., 1., 1.), n, n, n)
         # Set mesh to square on [0, 1]^3
-        # self.mesh = BoxMesh(Point(0., 0., 0.), Point(1., 1., 1.), n, n, n)
+        self.mesh = BoxMesh(Point(0., 0., 0.), Point(1., 1., 1.), n, n, n)
 
 # --------------------------------------------------
 # Test example for which Cordes condition is
