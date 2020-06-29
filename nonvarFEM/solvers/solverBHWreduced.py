@@ -35,24 +35,36 @@ def checkForZero(this_a):
         return False
     else:
         print('Unknown instance in check for zeros')
-        import ipdb
-        ipdb.set_trace()
         raise ValueError('Unknown instance in check for zeros')
 
 
 def spy(A):
     ind = A > 0
-    # try:
-    #     ind = A > 0
-    # except:
-    #     ind = A.array() > 0
-    xi, yi = np.where(ind)
+
+    try:
+        xi, yi = np.where(ind)
+    except ValueError:
+        xi, yi = np.where(ind.toarray())
+
     plt.scatter(xi, yi, s=1)
+
     ax = plt.gca()
     ylim = ax.get_ylim()
     ax.set_ylim([ylim[1], ylim[0]])
     ax.legend()
+
     plt.show()
+
+
+class ItMat(object):
+    def __init__(self, A):
+        self.A = A
+        self.shape = A.shape
+        n = self.shape[0]
+        self.Prec = sp.spdiags(1. / A.diagonal(), np.array([0]), n, n)
+
+    def solve(self, x):
+        return la.gmres(self.A, x, M=self.Prec, tol=1e-12)[0]
 
 
 class gmres_counter(object):
@@ -70,14 +82,13 @@ def spmat(myM):
     M_mat = as_backend_type(myM).mat()
     M_sparray = sp.csr_matrix(M_mat.getValuesCSR()[::-1], shape=M_mat.size)
 
-    return M_sparray
+    return M_sparray.tocsc()
 
 
-def solverFEHessianGMRES(P, opt):
+def solverBHWreduced(P, opt):
     ''' Function to solve the second-order pde in
     nonvariational formulation using gmres '''
 
-    # gamma = tr(P.a) / inner(P.a,P.a) if opt["normalizeA"] else 1.0
     gamma = P.normalizeSystem(opt)
 
     # Extract local space of tensor space W_h
@@ -94,7 +105,8 @@ def solverFEHessianGMRES(P, opt):
     NW = W_H_loc.dim()
 
     # Get indices of inner and boundary nodes
-    bc_V = DirichletBC(P.V, P.g, 'on_boundary')
+    # Calling DirichletBC with actual P.g calls project which is expensive
+    bc_V = DirichletBC(P.V, Constant(1), 'on_boundary')
     idx_bnd = list(bc_V.get_boundary_values().keys())
     N_bnd = len(idx_bnd)
     N_in = N - N_bnd
@@ -115,15 +127,17 @@ def solverFEHessianGMRES(P, opt):
         return S[idx_inner, :][:, idx_bnd]
 
     # Assemble mass matrix and store LU decomposition
-    M_W = spmat(assemble(trial_p*test_p*dx))
+    M_W = spmat(assemble(trial_p * test_p * dx))
+    # spy(M_W)
 
     if opt['time_check']:
         t1 = time()
 
-    M_LU = la.splu(M_W)
+    # M_LU = la.splu(M_W)
+    M_LU = ItMat(M_W)
 
     if opt['time_check']:
-        print("Compute LU decomposition of M_W ... %.2fs" % (time()-t1))
+        print("Compute LU decomposition of M_W ... %.2fs" % (time() - t1))
         sys.stdout.flush()
 
     # Check for constant zero entries in diffusion matrix
@@ -145,7 +159,7 @@ def solverFEHessianGMRES(P, opt):
                 print('Ignore value ({},{})'.format(i, j))
 
     def emptyMat(d=P.dim()):
-        return [[None]*d for i in range(d)]
+        return [[None] * d for i in range(d)]
 
     # Assemble weighted mass matrices
     B = emptyMat()
@@ -161,8 +175,8 @@ def solverFEHessianGMRES(P, opt):
         this_form = -trial_u.dx(i) * test_p.dx(j) * \
             dx + trial_u.dx(i) * test_p * P.nE[j] * ds
         if opt["HessianSpace"] == 'DG':
-            this_form += avg(trial_u.dx(i)) * (test_p('+') *
-                                               P.nE[j]('+') + test_p('-')*P.nE[j]('-')) * dS
+            this_form += avg(trial_u.dx(i)) \
+                * (test_p('+') * P.nE[j]('+') + test_p('-') * P.nE[j]('-')) * dS
         return this_form
 
     # Ensure the diagonal is set up, necessary for the FE Laplacian
@@ -205,13 +219,13 @@ def solverFEHessianGMRES(P, opt):
     def S_II_times_u(x):
         Dv = [B[i][j] * M_LU.solve(_i2a(C[i][j]) * x) for i, j in nzs]
         w = M_LU.solve(sum(Dv))
-        return (_i2a(C_lapl)).transpose() * w + _i2i(S)*x
+        return (_i2a(C_lapl)).transpose() * w + _i2i(S) * x
 
     # Set up matrix-vector product for boundary nodes
     def S_IB_times_u(x):
         Dv = [B[i][j] * M_LU.solve(_b2a(C[i][j]) * x) for i, j in nzs]
         w = M_LU.solve(sum(Dv))
-        return (_i2a(C_lapl)).transpose() * w + _b2i(S)*x
+        return (_i2a(C_lapl)).transpose() * w + _b2i(S) * x
 
     # Assemble f_W
     f_W = assemble(gamma * P.f * test_p * dx)
@@ -221,8 +235,10 @@ def solverFEHessianGMRES(P, opt):
 
     # Set up right-hand side
     try:
+        print('Interpolation works for G')
         G = interpolate(P.g, P.V)
     except AttributeError:
+        print('Has to use projection for G')
         G = project(P.g, P.V)
 
     # Compute right-hand side
@@ -232,8 +248,21 @@ def solverFEHessianGMRES(P, opt):
     g_bc = Gvec.get_local().take(idx_bnd)
     rhs -= M_bnd * g_bc
 
+    # ipdb.set_trace()
+    # G2 = dolfin.UserExpression(P.g, element=P.uElement)
+    # ipdb.set_trace()
+    # rhs2 = (_i2a(C_lapl)).transpose() * M_LU.solve(f_W.get_local())
+
+    # Gvec = G2.vector()
+    # g_bc = Gvec.get_local().take(idx_bnd)
+    # rhs2 -= M_bnd * g_bc
+
+    # qel = dolfin.VectorElement(family='Quadrature',cell=P.mesh.ufl_cell(),degree=2,quad_scheme='default')
+    # Q_V = dolfin.FunctionSpace(P.mesh, qel)
+    # Q_g = dolfin.UserExpression(P.g, element=qel)
+
     # Set up preconditioner
-    M_W_DiagInv = sp.spdiags(1./M_W.diagonal(), np.array([0]), NW, NW)
+    M_W_DiagInv = sp.spdiags(1. / M_W.diagonal(), np.array([0]), NW, NW)
     D = [B[i][j] * M_W_DiagInv * _i2a(C[i][j]) for i, j in nzs]
     Prec = (_i2a(C_lapl)).transpose() * M_W_DiagInv * sum(D) + _i2i(S)
 
@@ -244,9 +273,11 @@ def solverFEHessianGMRES(P, opt):
     if opt['time_check']:
         t1 = time()
 
-    gmres_mode = 1  # LU decomposition of Prec
+    # gmres_mode = 1  # LU decomposition of Prec
     # gmres_mode = 2  # solve routine of scipy
     # gmres_mode = 3  # incomplete LU decomposition of Prec
+    # gmres_mode = 4  # aslinearop
+    gmres_mode = 5  # Diag of prec
 
     # 1st variant: determine LU factorization of preconditioner
     if gmres_mode == 1:
@@ -265,13 +296,24 @@ def solverFEHessianGMRES(P, opt):
         PrecLinOp = la.LinearOperator(
             (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
 
+    if gmres_mode == 4:
+
+        Prec_LU = ItMat(Prec)
+        # Prec_LU = la.aslinearoperator(Prec)
+        PrecLinOp = la.LinearOperator(
+            (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
+
+    if gmres_mode == 5:
+        PrecDiag = sp.spdiags(1. / Prec.diagonal(), np.array([0]), N_in, N_in)
+        PrecLinOp = la.aslinearoperator(PrecDiag)
+
     if opt['time_check']:
         t2 = time()
         print("Prepare GMRES (e.g. LU decomp of Prec) ... %.2fs" % (t2-t1))
         sys.stdout.flush()
 
     # System solve
-    (x, gmres_flag) = la.gmres(A=M_in,
+    (x, gmres_flag) = la.lgmres(A=M_in,
                                b=rhs,
                                M=PrecLinOp,
                                x0=np.zeros(N_in),
@@ -280,7 +322,7 @@ def solverFEHessianGMRES(P, opt):
                                callback=counter)
 
     if opt['time_check']:
-        print("Time for GMRES ... %.2fs" % (time()-t2))
+        print("Time for GMRES ... %.2fs" % (time() - t2))
         sys.stdout.flush()
 
     print('GMRES output flag: {}'.format(gmres_flag))

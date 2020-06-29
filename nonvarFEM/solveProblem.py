@@ -16,9 +16,9 @@ def solveProblem(P, opt):
 
     set_log_level(opt['dolfinLogLevel'])
 
-    parameters["reorder_dofs_serial"] = False
+    # parameters["reorder_dofs_serial"] = False
     # parameters['form_compiler']['quadrature_rule'] = 'vertex'
-    # parameters["form_compiler"]["quadrature_degree"] = 15
+    parameters["form_compiler"]["quadrature_degree"] = 15
     # parameters['ghost_mode'] = 'shared_facet'
     parameters['krylov_solver']['absolute_tolerance'] = 1e-10
     parameters['krylov_solver']['relative_tolerance'] = 1e-10
@@ -32,7 +32,7 @@ def solveProblem(P, opt):
     else:
         n_range = [opt["initialMeshResolution"]]
 
-    print('-'*50+'\n')
+    print('-' * 50 + '\n')
 
     if opt["meshRefinement"]:
         n = opt["initialMeshResolution"]
@@ -119,11 +119,13 @@ def solveProblem(P, opt):
             P.plotSolution()
 
         # Determine error estimates
-        print('Estimate errors')
-        eta = P.determineErrorEstimates(opt)
-        eta_est = np.sum(np.power(eta, 2))
-        df.loc[k, 'Eta_global'] = eta_est
+        print('WARNING: Introduce flag to estimate errors')
+        # print('Estimate errors')
+        # eta = P.determineErrorEstimates(opt)
+        # eta_est = np.sum(np.power(eta, 2))
+        # df.loc[k, 'Eta_global'] = eta_est
 
+        # Mesh refinement
         if opt["meshRefinement"] > 0:
             if ndofs < opt["NdofsThreshold"]:
                 # Refine mesh depending on the strategy
@@ -156,7 +158,7 @@ def solveProblem(P, opt):
 
         for (k, u) in enumerate(U):
 
-            print("Compute errors on mesh level %i / %i" % (k+1, len(U)))
+            print("Compute errors on mesh level %i / %i" % (k + 1, len(U)))
 
             # Interpolate u_k on the finest mesh
             u = interpolate(u, P.V)
@@ -182,8 +184,8 @@ def solveProblem(P, opt):
     if len(n_range) > 1:
         df = hlp.determineEOCforDataframe(P.dim(), df)
 
-        if opt["plotErrorRates"]:
-            hlp.plotError(df)
+        if opt["plotConvergenceRates"]:
+            hlp.plotConvergenceRates(df)
 
     if opt["writeToCsv"]:
         hlp.writeOutputToCsv(df, opt)

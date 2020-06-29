@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
         opt["plotSolution"] = 0
         opt["plotErrorEstimates"] = 0
-        opt["plotErrorRates"] = 0
+        opt["plotConvergenceRates"] = 0
         opt["plotMesh"] = 0
         opt["meshRefinement"] = 1  # Uniform refinement
         opt["stabilizationFlag"] = 1

@@ -28,32 +28,38 @@ if __name__ == "__main__":
 
     opt["plotSolution"] = 1
     opt["plotErrorEstimates"] = 0
-    opt["plotErrorRates"] = 0
+    opt["plotConvergenceRates"] = 0
     opt["plotMesh"] = 0
     opt["saveMesh"] = 0
-    opt["holdOn"] = 1
-    opt["normalizeA"] = 1
+    opt["holdOn"] = 0
+    opt["normalizeSystem"] = 0
     opt["meshRefinement"] = 1
 
     opt["refinementThreshold"] = .80
     opt["p"] = 2
     opt["q"] = 2
     opt["HessianSpace"] = "CG"
-    opt["NdofsThreshold"] = 5000
+    opt["NdofsThreshold"] = 50000
     opt["errorEstimationMethod"] = 1
     opt["time_check"] = 1
     opt["stabilizationFlag"] = 0
     opt["stabilityConstant1"] = 2  # Stability constant for first-order term
     opt["stabilityConstant2"] = 0  # Stability constant for second-order term
-    # opt["solutionMethod"] = 'FEHessianDirect'
-    opt["solutionMethod"] = 'FEHessianGmres'
+    # opt["solutionMethod"] = 'BHWcomplete'
+    opt["solutionMethod"] = 'BHWreduced'
     # opt["solutionMethod"] = 'NeilanSalgadoZhang'
     # opt["solutionMethod"] = 'Neilan'
+
+    opt["dolfinLogLevel"] = 11
 
     # P = NVP.Cinfty(0.99)
     # alpha = 1.5
     # P = NVP.Sol_in_H_alpha(alpha)
-    alpha = 0.75
+    # alpha = 0.25
+    alpha = 0.5
+    # alpha = 0.75
+    # alpha = 1.0
+    # alpha = 1.25
     P = NVP.Sol_in_H_alpha_3d(alpha)
     # P = NVP.No_Cordes()
     # P = NVP.Poisson()
@@ -110,5 +116,7 @@ if __name__ == "__main__":
     # P = PHJB.MinimumArrivalTimeParabolic()
     # P = PHJB.Merton()
     # P = PHJB.Chen_Forsyth()
-
+    from time import time
+    t1 = time()
     df = solveProblem(P, opt)
+    print('Time for solution: {}'.format(time() - t1))

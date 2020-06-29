@@ -10,7 +10,7 @@ def getSummary(P, opt):
         s += '\tSpace of H: {}\n'.format('No discrete Hessian')
     else:
         s += '\tSpace of H: {}{}\n'.format(opt['HessianSpace'], opt['p'])
-    s += '\tNormalization: {}\n'.format(opt['normalizeA'])
+    s += '\tNormalization: {}\n'.format(opt['normalizeSystem'])
     s += '\tInitial mesh size: {}\n'.format(opt['initialMeshResolution'])
     if opt['meshRefinement'] == 1:
         s += '\tMesh refinement: Quasi-uniform\n'

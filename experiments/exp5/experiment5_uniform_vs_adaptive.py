@@ -22,12 +22,12 @@ def experiment(P, opt, expname):
         hlp.writeOutputToCsv(df_uniform, opt, fname)
 
     # Second run with adaptive refinement
-    opt["meshRefinement"] = 2
-    opt["refinementThreshold"] = 0.95
-    df_adaptive = solveProblem(P, opt)
-    if WRITE_CSV:
-        fname = '{}_{}_adaptive'.format(opt['id'], expname)
-        hlp.writeOutputToCsv(df_adaptive, opt, fname)
+    # opt["meshRefinement"] = 2
+    # opt["refinementThreshold"] = 0.95
+    # df_adaptive = solveProblem(P, opt)
+    # if WRITE_CSV:
+    #     fname = '{}_{}_adaptive'.format(opt['id'], expname)
+    #     hlp.writeOutputToCsv(df_adaptive, opt, fname)
 
 
 if __name__ == "__main__":
@@ -38,11 +38,11 @@ if __name__ == "__main__":
     global_opt = hlp.standardOptions()
     global_opt["initialMeshResolution"] = 2
 
-    alpha = 0.75
-    global_opt["id"] = 'Sol_in_H_2.25'
+    # alpha = 0.75
+    # global_opt["id"] = 'Sol_in_H_2.25'
 
-    # alpha = 0.5
-    # global_opt["id"] = 'Sol_in_H_2.00'
+    alpha = 0.5
+    global_opt["id"] = 'Sol_in_H_2.00'
 
     P = Sol_in_H_alpha_3d(alpha)
 

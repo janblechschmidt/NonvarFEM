@@ -11,13 +11,13 @@ def standardOptions():
     opt["q"] = 2  # Dimension of space of Hessians
     opt["r"] = 2  # Dimension of space of gradients
 
-    opt["normalizeA"] = 1  # Normalize A
+    opt["normalizeSystem"] = 1  # Normalize A
     # Normalization parameter (should be optimized, is problem specific)
     opt["lambda"] = 1
     opt["HessianSpace"] = 'CG'
     opt["GradientSpace"] = 'CG'
-    # opt["solutionMethod"] = 'FEHessianDirect'
-    # opt["solutionMethod"] = 'FEHessianGmres'
+    # opt["solutionMethod"] = 'BHWcomplete'
+    # opt["solutionMethod"] = 'BHWreduced'
     opt["solutionMethod"] = 'NeilanSalgadoZhang'
     # opt["stabilizationFlag"] = 0 # no stabilization
     opt["stabilizationFlag"] = 1  # stabilization
@@ -32,7 +32,7 @@ def standardOptions():
     opt["plotMesh"] = 0   # Plot mesh flag
     opt["plotSolution"] = 0   # Plot solution flag
     opt["plotErrorEstimates"] = 0   # Plot error estimates flag
-    opt["plotErrorRates"] = 0   # Plot of error rates at the end
+    opt["plotConvergenceRates"] = 0   # Plot of error rates at the end
     opt["zAxisMin"] = 0.0   # Option to fix range of z axis
     opt["zAxisMax"] = 0.0   # Option to fix range of z axis
     opt["time_check"] = 1  # Print computation times
@@ -79,19 +79,19 @@ def opt_NeilanSalgadoZhang(opt=standardOptions()):
 def opt_Neilan(opt=standardOptions()):
     opt["solutionMethod"] = 'Neilan'
     opt["HessianSpace"] = "DG"
-    opt["normalizeA"] = 0  # No normalization
+    opt["normalizeSystem"] = 0  # No normalization
     return opt
 
 
 def opt_Own_CG_0_stab(opt=standardOptions()):
-    opt["solutionMethod"] = 'FEHessianGmres'
+    opt["solutionMethod"] = 'BHWreduced'
     opt["HessianSpace"] = 'CG'
     opt["stabilizationFlag"] = 0  # no stabilization
     return opt
 
 
 def opt_Own_CG_1_stab(opt=standardOptions()):
-    opt["solutionMethod"] = 'FEHessianGmres'
+    opt["solutionMethod"] = 'BHWreduced'
     opt["HessianSpace"] = 'CG'
     opt["stabilizationFlag"] = 1  # first-order stabilization
     opt["stabilityConstant1"] = 1.0  # Stability constant for first-order term
@@ -100,7 +100,7 @@ def opt_Own_CG_1_stab(opt=standardOptions()):
 
 
 def opt_Own_CG_2_stab(opt=standardOptions()):
-    opt["solutionMethod"] = 'FEHessianGmres'
+    opt["solutionMethod"] = 'BHWreduced'
     opt["HessianSpace"] = 'CG'
     opt["stabilizationFlag"] = 1  # first-order stabilization
     opt["stabilityConstant1"] = 1.0  # Stability constant for first-order term
@@ -109,14 +109,14 @@ def opt_Own_CG_2_stab(opt=standardOptions()):
 
 
 def opt_Own_DG_0_stab(opt=standardOptions()):
-    opt["solutionMethod"] = 'FEHessianGmres'
+    opt["solutionMethod"] = 'BHWreduced'
     opt["HessianSpace"] = 'DG'
     opt["stabilizationFlag"] = 0  # first-order stabilization
     return opt
 
 
 def opt_Own_DG_1_stab(opt=standardOptions()):
-    opt["solutionMethod"] = 'FEHessianGmres'
+    opt["solutionMethod"] = 'BHWreduced'
     opt["HessianSpace"] = 'DG'
     opt["stabilizationFlag"] = 1  # first-order stabilization
     opt["stabilityConstant1"] = 1.0  # Stability constant for first-order term
