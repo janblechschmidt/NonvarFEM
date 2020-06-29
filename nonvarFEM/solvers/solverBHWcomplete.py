@@ -101,16 +101,8 @@ def solverBHWcomplete(P, opt):
 
     solve(a == L, P.x, bc_V, solver_parameters={'linear_solver': 'mumps'})
 
-    # The following does not converge
+    # Iterative solvers do not converge using the standard preconditioners
     # S, rhs = assemble_system(a, L, bc_V)
-    # solve(S, P.x.vector(), rhs, 'gmres', 'default')  # 44.84
-    # solve(S, P.x.vector(), rhs, 'gmres', 'ilu')  # 45.24
-    # Preconditioner   |  Description                               
-    # --------------------------------------------------------------
-    # default          |  default preconditioner                    
-    # --------------------------------------------------------------
-    # ilu              |  Incomplete LU factorization               
-    # sor              |  Successive over-relaxation  
 
     # TEST_RITZ = False
     # if TEST_RITZ:
