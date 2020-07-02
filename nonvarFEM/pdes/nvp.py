@@ -142,7 +142,8 @@ class NVP:
                 plt.gca().yaxis.set_major_locator(plt.NullLocator())
 
                 os.makedirs(opt['outputDir'], exist_ok=True)
-                fname = '{}_mesh_dimV_{:06d}.pdf'.format(opt['id'], self.solDofs(opt))
+                fname = '{}_mesh_dimV_{:06d}.pdf'.format(
+                    opt['id'], self.solDofs(opt))
                 thisPath = os.path.join(opt['outputDir'], fname)
                 plt.savefig(thisPath, bbox_inches='tight', pad_inches=0)
 
@@ -154,7 +155,8 @@ class NVP:
                 self.plotFEHessian()
 
         if opt["saveSolution"]:
-            fname = "{}_sol_dimV_{:06d}.pvd".format(opt["id"], self.solDofs(opt))
+            fname = "{}_sol_dimV_{:06d}.pvd".format(
+                opt["id"], self.solDofs(opt))
             file = File(os.path.join(opt['outputDir'], fname))
             file << self.u
 
@@ -206,14 +208,17 @@ class NVP:
         plt.pause(0.01)
 
     def plotSolution(self, fig=None, mode=1):
-        if not fig:
-            fig = plt.figure('u', clear=True)
-        V = self.V
-        # V = FunctionSpace(self.mesh,'CG',1)
 
-        if mode == 1:
-            if not self.hasSolution:  # No exact solution is available, we plot only the function u
-                if self.dim() == 1:
+        if self.dim() == 1:
+
+            if not fig:
+                fig = plt.figure('u', clear=True)
+            V = self.V
+
+            if mode == 1:
+                if not self.hasSolution:
+                    # No exact solution, we plot only the function u
+
                     if V.ufl_element().degree() == 1:
                         x = V.tabulate_dof_coordinates()
                         y1 = self.u.vector().get_local()
@@ -226,23 +231,16 @@ class NVP:
                     plt.plot(x, y1)
                     plt.title('Numerical solution')
                     plt.axis('tight')
+
                 else:
-                    # ax = fig.add_subplot(111, projection='3d')
-                    ax = fig.add_subplot(111)
-                    c = plot(self.u)
-                    plt.colorbar(c)
-                    ax.set_aspect('auto')
-
-            else:  # Exact solution is available, we plot them besides with the difference
-
-                if isinstance(self.u_, Function):
-                    u_exact = Function(V)
-                    u_exact.interpolate(self.u_)
-                else:
-                    u_exact = project(self.u_, self.V)
-                u_diff = self.u - u_exact
-
-                if self.dim() == 1:
+                    # Exact solution is available, we plot them both
+                    # besides the difference
+                    if isinstance(self.u_, Function):
+                        u_exact = Function(V)
+                        u_exact.interpolate(self.u_)
+                    else:
+                        u_exact = project(self.u_, self.V)
+                    u_diff = self.u - u_exact
 
                     ax = fig.add_subplot(3, 1, 1)
                     self.plot_1d_fun(self.u, self.V)
@@ -260,53 +258,38 @@ class NVP:
                     plt.title('Pointwise difference')
                     # plt.plot(x, y3)
                     plt.axis('tight')
+            elif mode == 2:
+                ax = fig.add_subplot(1, 1, 1)
+                tp = plot(self.u)
+                tp.set_cmap("viridis")
+                ax.set_aspect('auto')
+            elif mode == 3:
+                if self.hasSolution:
 
-                # if self.dim() == 1:
-                #     if V.ufl_element().degree() == 1:
-                #         x = V.tabulate_dof_coordinates()
-                #         y1 = self.u.vector().get_local()
-                #         y2 = u_exact.vector().get_local()
-                #         y3 = u_diff.vector().get_local()
+                    ax = fig.add_subplot(1, 1, 1)
 
-                #     else:
-                #         x = self.mesh.coordinates().flatten()
-                #         xidx = np.argsort(x)
-                #         x = x[xidx]
-                #         y1 = self.u.compute_vertex_values()[xidx]
-                #         y2 = u_exact.compute_vertex_values()[xidx]
-                #         y3 = y1 - y2
-                #         #  y3 = u_diff.compute_vertex_values()[xidx]
+                    u_exact = interpolate(self.u_, V)
+                    tp = plot(u_exact - self.u)
+                    tp.set_cmap("viridis")
+                    # plt.title('Difference $|u - u_h|$')
+                    # plot(u_diff.root_node(), mode='warp')
+                    return ax
 
-                #         # Approximate y for higher polynomials
-                #         # V_dofs = V.tabulate_dof_coordinates()
-                #         # xmin = min(V_dofs)
-                #         # xmax = max(V_dofs)
-                #         # Nint = 10
-                #         # y1=np.empty((Nint,))
-                #         # y2=np.empty((Nint,))
-                #         # y3=np.empty((Nint,))
-                #         # x = np.linspace(xmin,xmax,Nint)
-                #         # u.eval(y1, x)
-                #         # u_exact.eval(y2, x)
-                #         # u_diff.eval(y3, x)
-                #         # sys.exit()
+        elif self.dim() == 2:
+            if not fig:
+                fig = plt.figure('u', clear=True)
+            V = self.V
 
-                #     ax = fig.add_subplot(3,1,1)
-                #     plt.plot(x, y1)
-                #     plt.title('Numerical solution')
-                #     plt.axis('tight')
-                #
-                #     fig.add_subplot(3,1,2)
-                #     plt.title('Analytical solution')
-                #     plt.plot(x, y2)
-                #     plt.axis('tight')
-
-                #     fig.add_subplot(3,1,3)
-                #     plt.title('Pointwise difference')
-                #     plt.plot(x, y3)
-                #     plt.axis('tight')
-
-                elif self.dim() == 2:
+            if mode == 1:
+                if not self.hasSolution:
+                    # No exact solution, we plot only the function u
+                    ax = fig.add_subplot(111)
+                    c = plot(self.u)
+                    plt.colorbar(c)
+                    ax.set_aspect('auto')
+                else:
+                    # Exact solution is available, we plot them both
+                    # besides the difference
                     ax = fig.add_subplot(3, 1, 1)
                     c1 = plot(self.u)
                     plt.colorbar(c1)
@@ -324,53 +307,29 @@ class NVP:
                     plt.colorbar(c3)
                     plt.title('Pointwise difference')
                     ax.set_aspect('auto')
-
-                else:
-                    warning('No plots in dimension %i possible' % self.dim())
-                    return
-
-            plt.draw()
-            plt.pause(0.01)
-            return ax
-
-        if mode == 2:
-            # ax = fig.add_subplot(1,1,1, projection='3d')
-            ax = fig.add_subplot(1, 1, 1)
-            tp = plot(self.u)
-            tp.set_cmap("viridis")
-            # plt.title('Numerical solution $u_h$')
-
-            # ax = fig.add_subplot(1,1,1, projection='3d')
-            # plot(self.u)
-            # plot(self.u.root_node(), mode='warp')
-            ax.set_aspect('auto')
-            return ax
-
-        if mode == 3:
-            if self.hasSolution:
-
-                # ax = fig.add_subplot(1,1,1, projection='3d')
+            elif mode == 2:
                 ax = fig.add_subplot(1, 1, 1)
-
-                # sub2Func = FunctionAssigner(V, self.mixedSpace.sub(0))
-                # u_onV = Function(V)
-                # sub2Func.assign(u_onV, self.x.sub(0))
-                # u_exact = interpolate(self.u_, V)
-                # u_diff = Function(V)
-                # u_diff.vector()[:] = u_onV.vector() - u_exact.vector()
-                # u_diff.vector().abs()
-                #
-                # if not fig:
-                #     fig = plt.figure()
-                #     fig.clf()
-                # plot(u_diff)
-
-                u_exact = interpolate(self.u_, V)
-                tp = plot(u_exact - self.u)
+                tp = plot(self.u)
                 tp.set_cmap("viridis")
-                # plt.title('Difference $|u - u_h|$')
-                # plot(u_diff.root_node(), mode='warp')
-                return ax
+                ax.set_aspect('auto')
+            elif mode == 3:
+                if self.hasSolution:
+
+                    ax = fig.add_subplot(1, 1, 1)
+
+                    u_exact = interpolate(self.u_, V)
+                    tp = plot(u_exact - self.u)
+                    tp.set_cmap("viridis")
+                    # plt.title('Difference $|u - u_h|$')
+                    # plot(u_diff.root_node(), mode='warp')
+
+        else:
+            warning('No plots in dimension %i possible' % self.dim())
+            return
+
+        plt.draw()
+        plt.pause(0.01)
+        return ax
 
     def plot_1d_fun(self, fun, space, *args, **kwargs):
 
