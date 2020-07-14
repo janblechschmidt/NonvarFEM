@@ -40,6 +40,7 @@ if __name__ == "__main__":
     opt["q"] = 2
     opt["HessianSpace"] = "CG"
     opt["NdofsThreshold"] = 50000
+    # opt["NdofsThreshold"] = 4000
     opt["errorEstimationMethod"] = 1
     opt["time_check"] = 1
     opt["stabilizationFlag"] = 0

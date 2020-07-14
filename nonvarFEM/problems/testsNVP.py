@@ -75,23 +75,18 @@ class Sol_in_H_alpha_3d(NVP):
         # Set up explicit solution
         print('Chosen alpha is {}'.format(self.alpha))
         print('Solution is in H^{}'.format(1.5 + self.alpha))
+
         r = sqrt((x - .5)**2 + (y - .5)**2 + (z - .5)**2)
-        # r = sqrt(pow(x - .5,2) + pow(y - .5,2) + pow(z - .5,2))
         # The following seems to be at most in H^2
-        # self.u_ = r**self.alpha * sin(2. * phi1) * sin(2.*phi2) * (1 - x) * (1 - y) * (1-z)
-        # self.u_ = r**self.alpha # * (1 - x)**2 * (1 - y)**2 * (1 - z)**2
-        self.u_ = r**self.alpha * x * (1. - x) * y * (1. - y) * z * (1. - z)
-        # phi = atan_2(y, x)
-        # psi = atan_2(z, y)
-        # self.u_ = r**self.alpha * sin(phi) * sin(psi)
-        # self.u_ = r**self.alpha
+        # self.u_ = r**self.alpha * x * (1. - x) * y * (1. - y) * z * (1. - z)
+        self.u_ = r**self.alpha
 
         # Init right-hand side
         self.f = inner(self.a, grad(grad(self.u_)))
 
         # Set boundary conditions to exact solution
-        # self.g = self.u_
-        self.g = Constant(0.0)
+        self.g = self.u_
+        # self.g = Constant(0.0)
 
     def initMesh(self, n):
 

@@ -56,7 +56,7 @@ def spy(A):
     plt.show()
 
 
-class ItMat(object):
+class cgMat(object):
     def __init__(self, A):
         self.A = A
         self.shape = A.shape
@@ -64,7 +64,18 @@ class ItMat(object):
         self.Prec = sp.spdiags(1. / A.diagonal(), np.array([0]), n, n)
 
     def solve(self, x):
-        return la.gmres(self.A, x, M=self.Prec, tol=1e-12)[0]
+        return la.cg(self.A, x, M=self.Prec, tol=1e-12)[0]
+
+
+class gmresMat(object):
+    def __init__(self, A):
+        self.A = A
+        self.shape = A.shape
+        n = self.shape[0]
+        self.Prec = sp.spdiags(1. / A.diagonal(), np.array([0]), n, n)
+
+    def solve(self, x):
+        return la.lgmres(self.A, x, M=self.Prec, tol=1e-12)[0]
 
 
 class gmres_counter(object):
@@ -134,7 +145,7 @@ def solverBHWreduced(P, opt):
         t1 = time()
 
     # M_LU = la.splu(M_W)
-    M_LU = ItMat(M_W)
+    M_LU = cgMat(M_W)
 
     if opt['time_check']:
         print("Compute LU decomposition of M_W ... %.2fs" % (time() - t1))
@@ -234,12 +245,13 @@ def solverBHWreduced(P, opt):
     M_bnd = la.LinearOperator((N_in, N_bnd), matvec=lambda x: S_IB_times_u(x))
 
     # Set up right-hand side
-    try:
-        print('Interpolation works for G')
-        G = interpolate(P.g, P.V)
-    except AttributeError:
-        print('Has to use projection for G')
-        G = project(P.g, P.V)
+    G = project(P.g, P.V, solver_type="cg")
+    # try:
+    #     print('Interpolation works for G')
+    #     G = interpolate(P.g, P.V)
+    # except AttributeError:
+    #     print('Has to use projection for G')
+    #     G = project(P.g, P.V)
 
     # Compute right-hand side
     rhs = (_i2a(C_lapl)).transpose() * M_LU.solve(f_W.get_local())
@@ -263,8 +275,8 @@ def solverBHWreduced(P, opt):
 
     # Set up preconditioner
     M_W_DiagInv = sp.spdiags(1. / M_W.diagonal(), np.array([0]), NW, NW)
-    D = [B[i][j] * M_W_DiagInv * _i2a(C[i][j]) for i, j in nzs]
-    Prec = (_i2a(C_lapl)).transpose() * M_W_DiagInv * sum(D) + _i2i(S)
+    D = sum([B[i][j] * M_W_DiagInv * _i2a(C[i][j]) for i, j in nzs])
+    Prec = (_i2a(C_lapl)).transpose() * M_W_DiagInv * D + _i2i(S)
 
     # Initialize counter for GMRES
     counter = gmres_counter(disp=True)
@@ -276,8 +288,8 @@ def solverBHWreduced(P, opt):
     # gmres_mode = 1  # LU decomposition of Prec
     # gmres_mode = 2  # solve routine of scipy
     # gmres_mode = 3  # incomplete LU decomposition of Prec
-    # gmres_mode = 4  # aslinearop
-    gmres_mode = 5  # Diag of prec
+    gmres_mode = 4  # aslinearop
+    # gmres_mode = 5  # Diag of prec
 
     # 1st variant: determine LU factorization of preconditioner
     if gmres_mode == 1:
@@ -298,8 +310,7 @@ def solverBHWreduced(P, opt):
 
     if gmres_mode == 4:
 
-        Prec_LU = ItMat(Prec)
-        # Prec_LU = la.aslinearoperator(Prec)
+        Prec_LU = gmresMat(Prec)
         PrecLinOp = la.LinearOperator(
             (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
 
@@ -309,11 +320,11 @@ def solverBHWreduced(P, opt):
 
     if opt['time_check']:
         t2 = time()
-        print("Prepare GMRES (e.g. LU decomp of Prec) ... %.2fs" % (t2-t1))
+        print("Prepare GMRES (e.g. LU decomp of Prec) ... %.2fs" % (t2 - t1))
         sys.stdout.flush()
 
     # System solve
-    (x, gmres_flag) = la.lgmres(A=M_in,
+    (x, gmres_flag) = la.gmres(A=M_in,
                                b=rhs,
                                M=PrecLinOp,
                                x0=np.zeros(N_in),

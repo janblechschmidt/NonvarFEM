@@ -41,12 +41,12 @@ if __name__ == "__main__":
     # alpha = 0.75
     # global_opt["id"] = 'Sol_in_H_2.25'
 
-    alpha = 0.5
-    global_opt["id"] = 'Sol_in_H_2.00'
+    alpha = 1.0
+    global_opt["id"] = 'Sol_in_H_2.50'
 
     P = Sol_in_H_alpha_3d(alpha)
 
-    global_opt["NdofsThreshold"] = 4000
+    global_opt["NdofsThreshold"] = 50000
 
     # Fix polynomial degree
     global_opt["p"] = 2

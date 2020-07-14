@@ -174,10 +174,13 @@ class NVP:
         plt.pause(0.01)
 
     def plotFEHessian(self, fig=None):
+        
+        D = self.dim()
+        if D > 2:
+            return
 
         if not fig:
             fig = plt.figure('FE Hessian', clear=True)
-        D = self.dim()
         for (i, j) in itertools.product(range(D), range(D)):
             fig.add_subplot(D, D, i*D+j+1)
             if D == 1:
