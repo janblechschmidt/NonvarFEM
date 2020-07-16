@@ -245,7 +245,10 @@ def solverBHWreduced(P, opt):
     M_bnd = la.LinearOperator((N_in, N_bnd), matvec=lambda x: S_IB_times_u(x))
 
     # Set up right-hand side
-    G = project(P.g, P.V, solver_type="cg")
+    if P.solDofs(opt) < 20000:
+        G = project(P.g, P.V, solver_type="lu")
+    else:
+        G = project(P.g, P.V, solver_type="cg")
     # try:
     #     print('Interpolation works for G')
     #     G = interpolate(P.g, P.V)
@@ -274,6 +277,10 @@ def solverBHWreduced(P, opt):
     # Q_g = dolfin.UserExpression(P.g, element=qel)
 
     # Set up preconditioner
+    # M_W_orig = assemble(trial_p * test_p * dx)
+    # import ipdb
+    # ipdb.set_trace()
+
     M_W_DiagInv = sp.spdiags(1. / M_W.diagonal(), np.array([0]), NW, NW)
     D = sum([B[i][j] * M_W_DiagInv * _i2a(C[i][j]) for i, j in nzs])
     Prec = (_i2a(C_lapl)).transpose() * M_W_DiagInv * D + _i2i(S)
@@ -310,7 +317,11 @@ def solverBHWreduced(P, opt):
 
     if gmres_mode == 4:
 
-        Prec_LU = gmresMat(Prec)
+        if P.solDofs(opt) < 20000:
+            Prec_LU = la.splu(Prec)
+        else:
+            Prec_LU = gmresMat(Prec)
+
         PrecLinOp = la.LinearOperator(
             (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
 

@@ -10,6 +10,7 @@ SL_Asian_working.py
 # Jupyter notebooks for testing
 notebooks/
 experiments/exp6
+experiments/exp5/copy_results.sh
 
 # Todo list
 todo.md

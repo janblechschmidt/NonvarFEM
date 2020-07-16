@@ -39,8 +39,8 @@ if __name__ == "__main__":
     opt["p"] = 2
     opt["q"] = 2
     opt["HessianSpace"] = "CG"
-    opt["NdofsThreshold"] = 50000
-    # opt["NdofsThreshold"] = 4000
+    # opt["NdofsThreshold"] = 50000
+    opt["NdofsThreshold"] = 4000
     opt["errorEstimationMethod"] = 1
     opt["time_check"] = 1
     opt["stabilizationFlag"] = 0
@@ -51,14 +51,14 @@ if __name__ == "__main__":
     # opt["solutionMethod"] = 'NeilanSalgadoZhang'
     # opt["solutionMethod"] = 'Neilan'
 
-    opt["dolfinLogLevel"] = 11
+    opt["dolfinLogLevel"] = 21
 
     # P = NVP.Cinfty(0.99)
     # alpha = 1.5
     # P = NVP.Sol_in_H_alpha(alpha)
     # alpha = 0.25
-    alpha = 0.5
-    # alpha = 0.75
+    # alpha = 0.5
+    alpha = 0.75
     # alpha = 1.0
     # alpha = 1.25
     P = NVP.Sol_in_H_alpha_3d(alpha)

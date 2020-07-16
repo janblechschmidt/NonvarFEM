@@ -10,7 +10,9 @@ import nonvarFEM.helpers as hlp
 
 # Norms
 from nonvarFEM.norms import EdgeJump_norm, H20_norm, H10_norm, L2_norm
+from dolfin import XDMFFile
 
+import dolfin
 
 def solveProblem(P, opt):
 
@@ -120,10 +122,10 @@ def solveProblem(P, opt):
 
         # Determine error estimates
         print('WARNING: Introduce flag to estimate errors')
-        # print('Estimate errors')
-        # eta = P.determineErrorEstimates(opt)
-        # eta_est = np.sum(np.power(eta, 2))
-        # df.loc[k, 'Eta_global'] = eta_est
+        print('Estimate errors')
+        eta = P.determineErrorEstimates(opt)
+        eta_est = np.sum(np.power(eta, 2))
+        df.loc[k, 'Eta_global'] = eta_est
 
         # Mesh refinement
         if opt["meshRefinement"] > 0:
@@ -131,8 +133,10 @@ def solveProblem(P, opt):
                 # Refine mesh depending on the strategy
                 if opt["meshRefinement"] == 1:
                     print('Refine mesh uniformly')
-                    NN = NN * 2
-                    P.refineMesh(N=NN)
+                    # NN = NN * 2
+                    # P.refineMesh(N=NN)
+                    P.refineMesh()
+
                 elif opt["meshRefinement"] == 2:
                     print("Refine mesh adaptively")
                     cell_markers = P.markCells(opt, eta)
@@ -190,4 +194,6 @@ def solveProblem(P, opt):
     if opt["writeToCsv"]:
         hlp.writeOutputToCsv(df, opt)
 
+    xf = XDMFFile("mesh.xdmf")
+    xf.write(P.u)
     return df

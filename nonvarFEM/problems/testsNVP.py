@@ -7,9 +7,10 @@ from dolfin import sqrt, sin, pi, atan
 from ufl import atan_2
 from dolfin import cos, conditional, exp, ln
 
+import mshr
 
 # Import some standard meshes
-from .meshes import mesh_UnitSquare, mesh_Square
+from .meshes import mesh_UnitSquare, mesh_Square, mesh_Cube
 
 # Import base class of problems
 from nonvarFEM.pdes import NVP
@@ -77,6 +78,7 @@ class Sol_in_H_alpha_3d(NVP):
         print('Solution is in H^{}'.format(1.5 + self.alpha))
 
         r = sqrt((x - .5)**2 + (y - .5)**2 + (z - .5)**2)
+        # r = sqrt((x - pi / 6)**2 + (y - pi / 6)**2 + (z - pi / 2)**2)
         # The following seems to be at most in H^2
         # self.u_ = r**self.alpha * x * (1. - x) * y * (1. - y) * z * (1. - z)
         self.u_ = r**self.alpha
@@ -90,10 +92,15 @@ class Sol_in_H_alpha_3d(NVP):
 
     def initMesh(self, n):
 
+        self.mesh = BoxMesh(Point(-1., -1., -1.), Point(1., 1., 1.), n, n, n)
+        # self.mesh = mesh_Cube(n)
         # Set mesh to square on [-1, 1]^3
         # self.mesh = BoxMesh(Point(-1., -1., -1.), Point(1., 1., 1.), n, n, n)
         # Set mesh to square on [0, 1]^3
-        self.mesh = BoxMesh(Point(0., 0., 0.), Point(1., 1., 1.), n, n, n)
+        # self.mesh = BoxMesh(Point(0., 0., 0.), Point(1., 1., 1.), n, n, n)
+        # print('\nMesh size: {}\n'.format(n))
+        # dom = mshr.Box(Point(0., 0., 0.), Point(1., 1., 1.))
+        # self.mesh = mshr.generate_mesh(dom, n, "cgal")
 
 # --------------------------------------------------
 # Test example for which Cordes condition is
