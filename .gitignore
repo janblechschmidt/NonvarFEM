@@ -11,6 +11,8 @@ SL_Asian_working.py
 notebooks/
 experiments/exp6
 experiments/exp5/copy_results.sh
+*.h5
+*.xdmf
 
 # Todo list
 todo.md
