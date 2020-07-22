@@ -19,6 +19,8 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as la
 import itertools
 
+from nonvarFEM.helpers.export_mat_file import exportAsMat
+
 
 def checkForZero(this_a):
     if isinstance(this_a, ufl.constantvalue.FloatValue):
@@ -170,7 +172,8 @@ def solverBHWreduced(P, opt):
                 print('Ignore value ({},{})'.format(i, j))
 
     def emptyMat(d=P.dim()):
-        return [[None] * d for i in range(d)]
+        return [[-1e15] * d for i in range(d)]
+        # return [[0] * d for i in range(d)]
 
     # Assemble weighted mass matrices
     B = emptyMat()
@@ -334,6 +337,21 @@ def solverBHWreduced(P, opt):
         print("Prepare GMRES (e.g. LU decomp of Prec) ... %.2fs" % (t2 - t1))
         sys.stdout.flush()
 
+    do_savemat = 1
+    if do_savemat:
+        from scipy.io import savemat
+        savemat('M.mat',
+                mdict={'Prec': Prec,
+                       'B': B,
+                       'C': C,
+                       'S': S,
+                       'M': M_W,
+                       'idx_inner': idx_inner,
+                       'idx_bnd': idx_bnd,
+                       })
+
+    import ipdb
+    ipdb.set_trace()
     # System solve
     (x, gmres_flag) = la.gmres(A=M_in,
                                b=rhs,
