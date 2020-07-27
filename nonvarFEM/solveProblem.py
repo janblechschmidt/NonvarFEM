@@ -36,12 +36,11 @@ def solveProblem(P, opt):
 
     print('-' * 50 + '\n')
 
-    if opt["meshRefinement"]:
-        n = opt["initialMeshResolution"]
-        NN = n
+    n = opt["initialMeshResolution"]
 
     # Initialize mesh
     P.initMesh(n)
+    P.meshLevel = 1
 
     for (k, n) in enumerate(n_range):
 
@@ -70,6 +69,9 @@ def solveProblem(P, opt):
             P.printCordesInfo()
 
         N_iter = P.solve(opt)
+
+        # Save solution as uold
+        P.uold = P.u.copy()
 
         P.doPlots(opt)
 
@@ -130,11 +132,10 @@ def solveProblem(P, opt):
         # Mesh refinement
         if opt["meshRefinement"] > 0:
             if ndofs < opt["NdofsThreshold"]:
+                P.meshLevel += 1
                 # Refine mesh depending on the strategy
                 if opt["meshRefinement"] == 1:
                     print('Refine mesh uniformly')
-                    # NN = NN * 2
-                    # P.refineMesh(N=NN)
                     P.refineMesh()
 
                 elif opt["meshRefinement"] == 2:
@@ -194,6 +195,6 @@ def solveProblem(P, opt):
     if opt["writeToCsv"]:
         hlp.writeOutputToCsv(df, opt)
 
-    xf = XDMFFile("mesh.xdmf")
-    xf.write(P.u)
+    # xf = XDMFFile("mesh.xdmf")
+    # xf.write(P.u)
     return df
