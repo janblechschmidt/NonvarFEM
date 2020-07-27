@@ -443,6 +443,7 @@ class NVP:
             # Initialize solution space and function
             self.mixedSpace = FunctionSpace(self.mesh, self.mixedElement)
             self.x = Function(self.mixedSpace)
+            # The following initializes u to be zero
             (self.u, self.H) = self.x.split()
 
             # if self.hasDrift:
