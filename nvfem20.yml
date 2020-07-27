@@ -1,0 +1,14 @@
+name: nvfem20
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8.2
+  - fenics=2019.1.0
+  - ipdb=0.12.3
+  - jupyter=1.0.0
+  - matplotlib=3.2.1
+  - numpy=1.18.4
+  - pandas=1.0.3
+  - scipy=1.4.1
+  - mshr=2019.1.0
