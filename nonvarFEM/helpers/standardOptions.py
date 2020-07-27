@@ -24,6 +24,7 @@ def standardOptions():
     opt["stabilityConstant1"] = 1.  # Stability constant for first-order term
     opt["stabilityConstant2"] = 1.  # Stability constant for second-order term
     opt["gmresTolRes"] = 1e-10  # GMRES tolerance (abs and rel)
+    opt["gmresWarmStart"] = False  # GMRES warm start, i.e., use previous iterate
 
     opt["errorEstimationMethod"] = 1
     opt["dolfinLogLevel"] = 21
