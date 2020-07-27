@@ -19,7 +19,7 @@ import scipy.sparse as sp
 import scipy.sparse.linalg as la
 import itertools
 
-from nonvarFEM.helpers.export_mat_file import exportAsMat
+MEM_THRESHOLD = 200000
 
 
 def checkForZero(this_a):
@@ -66,29 +66,35 @@ class cgMat(object):
         self.Prec = sp.spdiags(1. / A.diagonal(), np.array([0]), n, n)
 
     def solve(self, x):
-        return la.cg(self.A, x, M=self.Prec, tol=1e-12)[0]
+        return la.cg(self.A, x, M=self.Prec, tol=1e-10)[0]
 
 
 class gmresMat(object):
-    def __init__(self, A):
+    def __init__(self, A, tol=1e-8):
         self.A = A
+        self.tol = tol
+
         self.shape = A.shape
         n = self.shape[0]
         self.Prec = sp.spdiags(1. / A.diagonal(), np.array([0]), n, n)
 
     def solve(self, x):
-        return la.lgmres(self.A, x, M=self.Prec, tol=1e-12)[0]
+        return la.lgmres(self.A, x, M=self.Prec, tol=self.tol)[0]
 
 
 class gmres_counter(object):
     def __init__(self, disp=True):
         self._disp = disp
         self.niter = 0
+        self.t1 = time()
 
     def __call__(self, rk=None):
         self.niter += 1
         if self._disp:
-            print('iter %3i\trk = %s' % (self.niter, str(rk)))
+            self.t2 = time()
+            print('iter %3i\trk = %s\ttime = %s' %
+                  (self.niter, str(rk), str(self.t2 - self.t1)))
+            self.t1 = time()
 
 
 def spmat(myM):
@@ -227,7 +233,7 @@ def solverBHWreduced(P, opt):
     else:
 
         # If no stabilization is used, S is zero
-        S = sp.csr_matrix((N, N))
+        S = sp.csc_matrix((N, N))
 
     # Set up matrix-vector product for inner nodes
     def S_II_times_u(x):
@@ -248,16 +254,12 @@ def solverBHWreduced(P, opt):
     M_bnd = la.LinearOperator((N_in, N_bnd), matvec=lambda x: S_IB_times_u(x))
 
     # Set up right-hand side
-    if P.solDofs(opt) < 20000:
+    try:
+        print('Project boundary data with LU')
         G = project(P.g, P.V, solver_type="lu")
-    else:
+    except RuntimeError:
+        print('Out of memory error: Switch to projection with CG')
         G = project(P.g, P.V, solver_type="cg")
-    # try:
-    #     print('Interpolation works for G')
-    #     G = interpolate(P.g, P.V)
-    # except AttributeError:
-    #     print('Has to use projection for G')
-    #     G = project(P.g, P.V)
 
     # Compute right-hand side
     rhs = (_i2a(C_lapl)).transpose() * M_LU.solve(f_W.get_local())
@@ -266,40 +268,22 @@ def solverBHWreduced(P, opt):
     g_bc = Gvec.get_local().take(idx_bnd)
     rhs -= M_bnd * g_bc
 
-    # ipdb.set_trace()
-    # G2 = dolfin.UserExpression(P.g, element=P.uElement)
-    # ipdb.set_trace()
-    # rhs2 = (_i2a(C_lapl)).transpose() * M_LU.solve(f_W.get_local())
-
-    # Gvec = G2.vector()
-    # g_bc = Gvec.get_local().take(idx_bnd)
-    # rhs2 -= M_bnd * g_bc
-
-    # qel = dolfin.VectorElement(family='Quadrature',cell=P.mesh.ufl_cell(),degree=2,quad_scheme='default')
-    # Q_V = dolfin.FunctionSpace(P.mesh, qel)
-    # Q_g = dolfin.UserExpression(P.g, element=qel)
-
-    # Set up preconditioner
-    # M_W_orig = assemble(trial_p * test_p * dx)
-    # import ipdb
-    # ipdb.set_trace()
-
-    M_W_DiagInv = sp.spdiags(1. / M_W.diagonal(), np.array([0]), NW, NW)
-    D = sum([B[i][j] * M_W_DiagInv * _i2a(C[i][j]) for i, j in nzs])
-    Prec = (_i2a(C_lapl)).transpose() * M_W_DiagInv * D + _i2i(S)
-
-    # Initialize counter for GMRES
-    counter = gmres_counter(disp=True)
-    # counter = gmres_counter(disp=False)
+    M_W_DiagInv = sp.spdiags(1. / M_W.diagonal(), np.array([0]), NW, NW, format='csc')
+    D = sum([sp.spdiags(B[i][j].diagonal(), np.array([0]), NW, NW, format='csc')
+             * M_W_DiagInv * _i2a(C[i][j]) for i, j in nzs])
+    # D = sum([B[i][j] * M_W_DiagInv * _i2a(C[i][j]) for i, j in nzs])
+    Prec = (_i2a(C_lapl)).transpose().tocsc() * M_W_DiagInv * D + _i2i(S)
 
     if opt['time_check']:
         t1 = time()
 
-    # gmres_mode = 1  # LU decomposition of Prec
-    # gmres_mode = 2  # solve routine of scipy
+    gmres_mode = 1  # LU decomposition of Prec
     # gmres_mode = 3  # incomplete LU decomposition of Prec
-    gmres_mode = 4  # aslinearop
-    # gmres_mode = 5  # Diag of prec
+    # gmres_mode = 4  # aslinearop
+    # Findings during experiments
+    # - LU factorization of prec is fast, high memory demand
+    # - Using only the diag of prec is not suitable
+    # - Solve routine from scipy is slow
 
     # 1st variant: determine LU factorization of preconditioner
     if gmres_mode == 1:
@@ -307,20 +291,26 @@ def solverBHWreduced(P, opt):
         PrecLinOp = la.LinearOperator(
             (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
 
-    # 2nd variant: without LU factorization of preconditioner
-    if gmres_mode == 2:
-        PrecLinOp = la.LinearOperator(
-            (N_in, N_in), matvec=lambda x: sp.linalg.spsolve(Prec, x))
-
     # 3rd variant: determine incomplete LU factorization of preconditioner
     if gmres_mode == 3:
-        Prec_LU = la.spilu(Prec)
+        if P.solDofs(opt) < MEM_THRESHOLD:
+            fill_factor = 20
+            fill_factor = 30
+            print('Use incomplete LU with fill factor {} for preconditioning'.format(fill_factor))
+            Prec_LU = la.spilu(Prec,
+                               fill_factor=fill_factor,
+                               drop_tol=1e-4)
+        else:
+            print('Use gmres for preconditioning')
+            Prec_LU = gmresMat(Prec, tol=1e-8)
+            # print('Use cg for preconditioning')
+            # Prec_LU = cgMat(Prec)
         PrecLinOp = la.LinearOperator(
             (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
 
     if gmres_mode == 4:
 
-        if P.solDofs(opt) < 20000:
+        if P.solDofs(opt) < MEM_THRESHOLD:
             Prec_LU = la.splu(Prec)
         else:
             Prec_LU = gmresMat(Prec)
@@ -328,37 +318,44 @@ def solverBHWreduced(P, opt):
         PrecLinOp = la.LinearOperator(
             (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
 
-    if gmres_mode == 5:
-        PrecDiag = sp.spdiags(1. / Prec.diagonal(), np.array([0]), N_in, N_in)
-        PrecLinOp = la.aslinearoperator(PrecDiag)
-
     if opt['time_check']:
         t2 = time()
         print("Prepare GMRES (e.g. LU decomp of Prec) ... %.2fs" % (t2 - t1))
         sys.stdout.flush()
 
-    do_savemat = 1
+    do_savemat = 0
     if do_savemat:
         from scipy.io import savemat
-        savemat('M.mat',
+        savemat('M_{}.mat'.format(P.meshLevel),
                 mdict={'Prec': Prec,
                        'B': B,
                        'C': C,
                        'S': S,
                        'M': M_W,
+                       'f': f_W.get_local(),
+                       'g': Gvec.get_local(),
                        'idx_inner': idx_inner,
                        'idx_bnd': idx_bnd,
                        })
 
-    import ipdb
-    ipdb.set_trace()
+    if P.meshLevel == 1 or not opt["gmresWarmStart"]:
+        x0 = np.zeros(N_in)
+    else:
+        tmp = interpolate(P.uold, P.V)
+        x0 = tmp.vector().get_local()[idx_inner]
+
+    # Initialize counter for GMRES
+    counter = gmres_counter(disp=True)
+
     # System solve
     (x, gmres_flag) = la.gmres(A=M_in,
                                b=rhs,
                                M=PrecLinOp,
-                               x0=np.zeros(N_in),
-                               maxiter=1000,
+                               x0=x0,
+                               maxiter=2000,
                                tol=opt["gmresTolRes"],
+                               atol=opt["gmresTolRes"],
+                               restart=20,
                                callback=counter)
 
     if opt['time_check']:

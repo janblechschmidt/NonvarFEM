@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     opt = hlp.standardOptions()
 
-    opt["initialMeshResolution"] = 2
+    opt["initialMeshResolution"] = 10
     opt["timeSteps"] = 10
     opt["timeStepFactor"] = 2
     opt["printCordesInfo"] = 0
@@ -33,14 +33,15 @@ if __name__ == "__main__":
     opt["saveMesh"] = 0
     opt["holdOn"] = 0
     opt["normalizeSystem"] = 0
-    opt["meshRefinement"] = 1
+    opt["meshRefinement"] = 0
 
     opt["refinementThreshold"] = .80
     opt["p"] = 2
     opt["q"] = 2
     opt["HessianSpace"] = "CG"
     # opt["NdofsThreshold"] = 50000
-    opt["NdofsThreshold"] = 4000
+    opt["NdofsThreshold"] = 60000
+    opt["NdofsThreshold"] = 35000
     opt["errorEstimationMethod"] = 1
     opt["time_check"] = 1
     opt["stabilizationFlag"] = 0
@@ -50,6 +51,7 @@ if __name__ == "__main__":
     opt["solutionMethod"] = 'BHWreduced'
     # opt["solutionMethod"] = 'NeilanSalgadoZhang'
     # opt["solutionMethod"] = 'Neilan'
+    opt["gmresWarmStart"] = True  # GMRES warm start
 
     opt["dolfinLogLevel"] = 21
 
@@ -58,6 +60,7 @@ if __name__ == "__main__":
     # P = NVP.Sol_in_H_alpha(alpha)
     # alpha = 0.25
     # alpha = 0.5
+    # alpha = 0.6
     alpha = 0.75
     # alpha = 1.0
     # alpha = 1.25
