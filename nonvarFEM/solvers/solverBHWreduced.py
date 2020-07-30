@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 from time import time
 import sys
+import os
 
 # Basic linear algebra
 import numpy as np
@@ -18,9 +19,6 @@ from nonvarFEM.norms import vj, mj
 import scipy.sparse as sp
 import scipy.sparse.linalg as la
 import itertools
-
-MEM_THRESHOLD = 200000
-
 
 def checkForZero(this_a):
     if isinstance(this_a, ufl.constantvalue.FloatValue):
@@ -70,7 +68,7 @@ class cgMat(object):
 
 
 class gmresMat(object):
-    def __init__(self, A, tol=1e-8):
+    def __init__(self, A, tol=1e-10):
         self.A = A
         self.tol = tol
 
@@ -166,12 +164,14 @@ def solverBHWreduced(P, opt):
 
     # The off-diagonal entries
     nzs = []
+    Asym = True
     for (i, j) in itertools.product(range(P.dim()), range(P.dim())):
         if i == j:
             nzs.append((i, j))
         else:
             is_zero = checkForZero(P.a[i, j])
             if not is_zero:
+                Asym = False
                 print('Use value ({},{})'.format(i, j))
                 nzs.append((i, j))
             else:
@@ -271,52 +271,79 @@ def solverBHWreduced(P, opt):
     M_W_DiagInv = sp.spdiags(1. / M_W.diagonal(), np.array([0]), NW, NW, format='csc')
     D = sum([sp.spdiags(B[i][j].diagonal(), np.array([0]), NW, NW, format='csc')
              * M_W_DiagInv * _i2a(C[i][j]) for i, j in nzs])
-    # D = sum([B[i][j] * M_W_DiagInv * _i2a(C[i][j]) for i, j in nzs])
     Prec = (_i2a(C_lapl)).transpose().tocsc() * M_W_DiagInv * D + _i2i(S)
 
     if opt['time_check']:
         t1 = time()
 
-    gmres_mode = 1  # LU decomposition of Prec
-    # gmres_mode = 3  # incomplete LU decomposition of Prec
-    # gmres_mode = 4  # aslinearop
-    # Findings during experiments
-    # - LU factorization of prec is fast, high memory demand
-    # - Using only the diag of prec is not suitable
-    # - Solve routine from scipy is slow
+    # Determine approximate size of LU decomposition in GB
+    LU_size = NW**2 / (1024.**3)
+    MEM_size = os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') / (1024.**3)
 
-    # 1st variant: determine LU factorization of preconditioner
-    if gmres_mode == 1:
-        Prec_LU = la.splu(Prec)
-        PrecLinOp = la.LinearOperator(
-            (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
-
-    # 3rd variant: determine incomplete LU factorization of preconditioner
-    if gmres_mode == 3:
-        if P.solDofs(opt) < MEM_THRESHOLD:
-            fill_factor = 20
-            fill_factor = 30
-            print('Use incomplete LU with fill factor {} for preconditioning'.format(fill_factor))
-            Prec_LU = la.spilu(Prec,
-                               fill_factor=fill_factor,
-                               drop_tol=1e-4)
+    if LU_size / MEM_size > 0.8:
+        if Asym:
+            print('Use CG for preconditioning')
+            Prec_LU = cgMat(Prec)
         else:
-            print('Use gmres for preconditioning')
-            Prec_LU = gmresMat(Prec, tol=1e-8)
-            # print('Use cg for preconditioning')
-            # Prec_LU = cgMat(Prec)
-        PrecLinOp = la.LinearOperator(
-            (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
-
-    if gmres_mode == 4:
-
-        if P.solDofs(opt) < MEM_THRESHOLD:
-            Prec_LU = la.splu(Prec)
-        else:
+            print('Use GMRES for preconditioning')
             Prec_LU = gmresMat(Prec)
+    else:
+        try:
+            print('Use LU for preconditioning')
+            Prec_LU = la.splu(Prec)
+        except MemoryError:
+            if Asym:
+                print('Use CG for preconditioning')
+                Prec_LU = cgMat(Prec)
+            else:
+                print('Use GMRES for preconditioning')
+                Prec_LU = gmresMat(Prec)
 
-        PrecLinOp = la.LinearOperator(
-            (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
+    PrecLinOp = la.LinearOperator(
+        (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
+
+    # import ipdb
+    # ipdb.set_trace()
+    # gmres_mode = 1  # LU decomposition of Prec
+    # # gmres_mode = 3  # incomplete LU decomposition of Prec
+    # # gmres_mode = 4  # aslinearop
+    # # Findings during experiments
+    # # - LU factorization of prec is fast, high memory demand
+    # # - Using only the diag of prec is not suitable
+    # # - Solve routine from scipy is slow
+
+    # # 1st variant: determine LU factorization of preconditioner
+    # if gmres_mode == 1:
+    #     Prec_LU = la.splu(Prec)
+    #     PrecLinOp = la.LinearOperator(
+    #         (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
+
+    # # 3rd variant: determine incomplete LU factorization of preconditioner
+    # if gmres_mode == 3:
+    #     if P.solDofs(opt) < MEM_THRESHOLD:
+    #         fill_factor = 20
+    #         fill_factor = 30
+    #         print('Use incomplete LU with fill factor {} for preconditioning'.format(fill_factor))
+    #         Prec_LU = la.spilu(Prec,
+    #                            fill_factor=fill_factor,
+    #                            drop_tol=1e-4)
+    #     else:
+    #         print('Use gmres for preconditioning')
+    #         Prec_LU = gmresMat(Prec, tol=1e-8)
+    #         # print('Use cg for preconditioning')
+    #         # Prec_LU = cgMat(Prec)
+    #     PrecLinOp = la.LinearOperator(
+    #         (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
+
+    # if gmres_mode == 4:
+
+    #     if P.solDofs(opt) < MEM_THRESHOLD:
+    #         Prec_LU = la.splu(Prec)
+    #     else:
+    #         Prec_LU = gmresMat(Prec)
+
+    #     PrecLinOp = la.LinearOperator(
+    #         (N_in, N_in), matvec=lambda x: Prec_LU.solve(x))
 
     if opt['time_check']:
         t2 = time()

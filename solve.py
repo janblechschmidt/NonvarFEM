@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     opt = hlp.standardOptions()
 
-    opt["initialMeshResolution"] = 10
+    opt["initialMeshResolution"] = 16
     opt["timeSteps"] = 10
     opt["timeStepFactor"] = 2
     opt["printCordesInfo"] = 0

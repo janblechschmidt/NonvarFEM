@@ -37,6 +37,7 @@ if __name__ == "__main__":
     opt["writeToCsv"] = 0
     # Set tolerance to 10^-8
     opt["gmresTolRes"] = 1e-8
+    opt["gmresWarmStart"] = False
     # Prepare dataframe for results
     out = pd.DataFrame()
 
