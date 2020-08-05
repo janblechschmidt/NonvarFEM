@@ -24,7 +24,6 @@ def experiment(P, opt, expname):
     # Second run with adaptive refinement
     opt["meshRefinement"] = 2
     opt["refinementThreshold"] = 0.95
-    opt["refinementThreshold"] = 0.90
     df_adaptive = solveProblem(P, opt)
     if WRITE_CSV:
         fname = '{}_{}_adaptive'.format(opt['id'], expname)
@@ -42,11 +41,11 @@ if __name__ == "__main__":
     # alpha = 0.5
     # global_opt["id"] = 'Sol_in_H_2.00'
 
-    alpha = 0.6
-    global_opt["id"] = 'Sol_in_H_2.10'
+    # alpha = 0.6
+    # global_opt["id"] = 'Sol_in_H_2.10'
 
-    alpha = 0.75
-    global_opt["id"] = 'Sol_in_H_2.25'
+    # alpha = 0.75
+    # global_opt["id"] = 'Sol_in_H_2.25'
 
     alpha = 1.0
     global_opt["id"] = 'Sol_in_H_2.50'
@@ -83,7 +82,7 @@ if __name__ == "__main__":
     #
     experiment(P,
                hlp.opt_Own_CG_0_stab(global_opt),
-               '3d_90')
+               '3d')
 
     # experiment(P,
     #            hlp.opt_Own_CG_1_stab(global_opt),
