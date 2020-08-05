@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def estimateOrderOfConvergence(df, dim, mode):
+def estimateOrderOfConvergence(df, dim, mode, n = None):
     """
     Function to determine the experimental order
     of convergence through a (linear) regression line.
@@ -18,7 +18,8 @@ def estimateOrderOfConvergence(df, dim, mode):
 
     y = np.log(ydata)
     x = - (1.0 / dim) * np.log(xdata)
-    n = min(len(x), max_elem)
+    if not n:
+        n = min(len(x), max_elem)
     x = x[-n:]
     y = y[-n:]
 
