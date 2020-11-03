@@ -6,6 +6,5 @@ Currently, the following solvers are implemented:
 - Direct method by Neilan
 - Direct method by Feng, Salgado, Zhang
 
-## Usage
-
-## Requirements (Tested Version)
+# Link arxiv.org 
+https://arxiv.org/abs/1909.12676
