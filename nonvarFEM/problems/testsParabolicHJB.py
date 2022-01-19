@@ -221,7 +221,7 @@ class JensenSmears_2(pHJB):
 
 class MinimumArrivalTimeParabolic(pHJB):
 
-    def __init__(self, alpha=0.1, beta=0.1, cmin=-1., cmax=1.0):
+    def __init__(self, alpha=0.5, beta=0.5, sigmax=0.5, sigmay=0.5, cmin=-1., cmax=1.0, corrxy=0.0):
         self.T = [0, 1]
         self.t = Constant(self.T[1])
 
@@ -229,6 +229,9 @@ class MinimumArrivalTimeParabolic(pHJB):
         self.beta = beta
         self.cmin = cmin
         self.cmax = cmax
+        self.sigmax = sigmax
+        self.sigmay = sigmay
+        self.corrxy = corrxy
 
     def initControl(self):
 
@@ -236,6 +239,10 @@ class MinimumArrivalTimeParabolic(pHJB):
         self.controlSpace = []
         self.controlSpace.append(FunctionSpace(self.mesh, "DG", 0))
         self.controlSpace.append(FunctionSpace(self.mesh, "DG", 0))
+        # self.controlSpace.append(FunctionSpace(self.mesh, "CG", 1))
+        # self.controlSpace.append(FunctionSpace(self.mesh, "CG", 1))
+        
+        self.gamma = []
 
         # Initialize controls
         Dxu = Dx(self.u, 0)
@@ -247,22 +254,31 @@ class MinimumArrivalTimeParabolic(pHJB):
         smy = Dyu - self.beta
 
         if self.alpha < 1e-15:
-            gx = conditional(
-                spx < 0, self.cmax, conditional(smx > 0, self.cmin, 0))
-            gy = conditional(
-                spy < 0, self.cmax, conditional(smy > 0, self.cmin, 0))
+            self.gamma.append(conditional(
+                spx < 0, self.cmax, conditional(smx > 0, self.cmin, 0)))
+            self.gamma.append(conditional(
+                spy < 0, self.cmax, conditional(smy > 0, self.cmin, 0)))
         else:
-            e1 = ufl.Min(-1.0 * spx / self.alpha, self.cmax)
-            e2 = conditional(smx > 0,
-                             ufl.Max(-1.0 * smx / self.alpha, self.cmin), 0)
-            gx = conditional(spx < 0, e1, e2)
+            self.gamma.append(conditional(
+                spx < 0,
+                ufl.Min(-1.0 * spx / self.alpha, self.cmax),
+                conditional(smx > 0, ufl.Max(-1.0 * smx / self.alpha, self.cmin), 0)))
 
-            e3 = ufl.Min(-1.0 * spy / self.alpha, self.cmax)
-            e4 = conditional(smy > 0,
-                             ufl.Max(-1.0 * smy / self.alpha, self.cmin), 0)
-            gy = conditional(spy < 0, e3, e4)
+            self.gamma.append(conditional(
+                spy < 0,
+                ufl.Min(-1.0 * spy / self.alpha, self.cmax),
+                conditional(smy > 0, ufl.Max(-1.0 * smy / self.alpha, self.cmin), 0)))
+        #     e1 = ufl.Min(-1.0 * spx / self.alpha, self.cmax)
+        #     e2 = conditional(smx > 0,
+        #                      ufl.Max(-1.0 * smx / self.alpha, self.cmin), 0)
+        #     gx = conditional(spx < 0, e1, e2)
 
-        self.gamma = [gx, gy]
+        #     e3 = ufl.Min(-1.0 * spy / self.alpha, self.cmax)
+        #     e4 = conditional(smy > 0,
+        #                      ufl.Max(-1.0 * smy / self.alpha, self.cmin), 0)
+        #     gy = conditional(spy < 0, e3, e4)
+
+        # self.gamma = [gx, gy]
 
     def updateControl(self):
         """ The optimal continuous control in this example depends on the
@@ -274,7 +290,13 @@ class MinimumArrivalTimeParabolic(pHJB):
         # Init coefficient matrix
         x, y = SpatialCoordinate(self.mesh)
 
-        self.a = as_matrix([[1.0, 0.0], [0.0, 1.0]])
+        valxx = .5 * self.sigmax**2
+        valyy = .5 * self.sigmay**2
+        if self.corrxy == 'pw':
+            valxy = .5 * self.sigmax * self.sigmay * conditional(sqrt(x**2 + y**2) < .5, 0.9, -0.9)
+        else:
+            valxy = .5 * self.corrxy * self.sigmax * self.sigmay
+        self.a = as_matrix([[valxx, valxy], [valxy, valyy]])
         self.b = as_vector([self.gamma[0], self.gamma[1]])
 
         # Init right-hand side

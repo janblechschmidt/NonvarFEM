@@ -23,7 +23,7 @@ class HJB(NVP):
         # Initialize Howard iteration
         Howard_done = 0
         Howard_iter = 1
-        Howard_max_iter = 50
+        Howard_max_iter = 500
         Howard_threshold = 1e-10
 
         uold = Function(self.V)
@@ -45,9 +45,6 @@ class HJB(NVP):
         while not Howard_done:
 
             self.updateControl()
-            """ Experiment: What happens with the system matrix
-            when we change the control in one point?
-            """
 
             # This incorporates the current control
             self.updateCoefficients()
@@ -86,8 +83,10 @@ class HJB(NVP):
                         u_mean_array[Howard_iter] = u_mean_new
                 self.uAssigner.assign(uold, self.u)
 
-            self.plotControl()
-            self.plotSolution()
+            # self.plotSolution()
+            # self.plotControl()
+            # import ipdb
+            # ipdb.set_trace()
             Howard_iter = Howard_iter + 1
 
         return Howard_iter
@@ -123,18 +122,24 @@ class HJB(NVP):
 
                 else:
                     if isinstance(self.gamma[i], Function):
-                        c = plot(self.gamma[i])
+                        cbar = plot(self.gamma[i])
                     else:
-                        c = plot(project(self.gamma[i], self.controlSpace[i]))
+                        cbar = plot(project(self.gamma[i], self.controlSpace[i]))
 
                     try:
-                        plt.colorbar(c)
+                        plt.colorbar(cbar)
                     except AttributeError:
                         pass
                 ax.set_aspect('auto')
 
+        # fig = plt.figure('FEHessian', clear=True)
+        # fig.add_subplot(1, 1, 1)
+        # cbar2 = plot(project(self.H[0,0], self.controlSpace[0]))
+        # plt.colorbar(cbar2)
         plt.draw()
         plt.pause(0.01)
+        # import ipdb
+        # ipdb.set_trace()
 
     def initControl(self, opt):
         raise NameError("initControl for this problem not implemented")

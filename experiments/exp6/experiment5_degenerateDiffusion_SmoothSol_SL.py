@@ -105,7 +105,7 @@ if __name__ == '__main__':
     L2errTrap = []
     Cinferr = []
     steps = 7
-    filename = './results/experiment5/SL_' + model + name_id + '.csv'
+    filename = './results/SL_' + model + name_id + '.csv'
 
     if writeErrors:
         csvfile = open(filename, 'w', newline='')

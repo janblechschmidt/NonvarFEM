@@ -4,6 +4,8 @@ from dolfin import project, inner, grad, avg, dx, dS, ds
 
 import ufl
 from ufl.conditional import Conditional
+from ufl.constantvalue import Zero
+from ufl.indexed import Indexed
 
 import matplotlib.pyplot as plt
 
@@ -19,6 +21,7 @@ from nonvarFEM.norms import vj, mj
 import scipy.sparse as sp
 import scipy.sparse.linalg as la
 import itertools
+import ipdb
 
 def checkForZero(this_a):
     if isinstance(this_a, ufl.constantvalue.FloatValue):
@@ -26,15 +29,24 @@ def checkForZero(this_a):
             return True
         else:
             return False
+
     elif isinstance(this_a, Constant):
         if abs(this_a.values()[0]) < 1e-12:
             return True
         else:
             return False
+
     elif isinstance(this_a, Conditional):
+        return False
+
+    elif isinstance(this_a, Zero):
+        return True
+    
+    elif isinstance(this_a, Indexed):
         return False
     else:
         print('Unknown instance in check for zeros')
+        ipdb.set_trace()
         raise ValueError('Unknown instance in check for zeros')
 
 
@@ -105,6 +117,13 @@ def spmat(myM):
 def solverBHWreduced(P, opt):
     ''' Function to solve the second-order pde in
     nonvariational formulation using gmres '''
+
+    if P.hasDrift:
+        raise ValueError('Method currently does not support non-zero drift terms.')
+    if P.isTimeDependant:
+        raise ValueError('Method currently does not support parabolic problems.')
+    if P.hasPotential:
+        raise ValueError('Method currently does not support non-zero potential terms.')
 
     gamma = P.normalizeSystem(opt)
 
@@ -184,6 +203,7 @@ def solverBHWreduced(P, opt):
     # Assemble weighted mass matrices
     B = emptyMat()
     for (i, j) in nzs:
+        # ipdb.set_trace()
         this_form = gamma * P.a[i, j] * trial_p * test_p * dx
         B[i][j] = spmat(assemble(this_form))
 
@@ -401,11 +421,14 @@ def solverBHWreduced(P, opt):
     assign(P.u, u_loc)
 
     # Compute FE Hessians
-    # TODO adapt this for new implementation
-    # Hij = Function(W_H_loc)
-    # for (i, j) in itertools.product(range(P.dim()), range(P.dim())):
-    #     hij = M_LU.solve(C_in[i*P.dim() + j] * x)
-    #     Hij.vector()[:] = hij
-    #     assign(P.H.sub(i*P.dim() + j), Hij)
+    # import ipdb
+    # ipdb.set_trace()
+
+    for (i, j) in itertools.product(range(P.dim()), range(P.dim())):
+        if (i, j) in nzs:
+            Hij = Function(P.W_H.sub(i*P.dim() + j).collapse())
+            hij = M_LU.solve(C[i][j] * u_loc.vector())
+            Hij.vector()[:] = hij
+            assign(P.H.sub(i*P.dim() + j), Hij)
 
     return N_iter

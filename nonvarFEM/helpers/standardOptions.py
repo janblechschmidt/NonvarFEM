@@ -90,6 +90,11 @@ def opt_Own_CG_0_stab(opt=standardOptions()):
     opt["stabilizationFlag"] = 0  # no stabilization
     return opt
 
+def opt_Own_CG_0_stab_complete(opt=standardOptions()):
+    opt["solutionMethod"] = 'BHWcomplete'
+    opt["HessianSpace"] = 'CG'
+    opt["stabilizationFlag"] = 0  # no stabilization
+    return opt
 
 def opt_Own_CG_1_stab(opt=standardOptions()):
     opt["solutionMethod"] = 'BHWreduced'

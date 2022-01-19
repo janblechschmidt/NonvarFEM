@@ -61,7 +61,7 @@ def refineMesh(m, l, u):
     cell_markers = MeshFunction('bool', m, 1)
     cell_markers.set_all(False)
     coords = m.coordinates()
-    midpoints = 0.5*(coords[:-1] + coords[1:])
+    midpoints = 0.5 * (coords[:-1] + coords[1:])
     ref_idx = np.where((midpoints > l) & (midpoints < u))[0]
     cell_markers.array()[ref_idx] = True
     m = refine(m, cell_markers)
@@ -69,7 +69,7 @@ def refineMesh(m, l, u):
 
 
 if writeErrors:
-    filename = './results/experiment5/SL_' + \
+    filename = './results/SL_' + \
         model + '_K{}'.format(K) + name_id + '.csv'
     csvfile = open(filename, 'w', newline='')
     fieldnames = ['Step', 'Ndofs', 'Hmax', 'Nt', 'ExecTime', 'ExecTimeFac', 'V100']
@@ -264,7 +264,7 @@ for step in range(steps):
             if BC_RB[2]:
                 S0[idx_xmax, :] = 0
 
-            Sfull = Mmat - dt[i]*(Sxx + Sx + S0)
+            Sfull = Mmat - dt[i] * (Sxx + Sx + S0)
 
             # Include the upper-right corner as Dirichlet data
             dbc_bnd = np.where(dbc_bound(xdofs, ydofs[j]))[0]

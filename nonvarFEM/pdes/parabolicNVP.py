@@ -26,15 +26,18 @@ class ParabolicNVP(NVP):
         self.dt = (self.T[1] - self.T[0]) / nt
         self.u_np1 = Function(self.V)
 
-        file_u = File('./pvd/u.pvd')
+        if opt["saveSolution"]:
+            file_u = File('./pvd/u.pvd')
 
         print('Setting final time conditions')
         assign(self.u, project(self.u_T, self.V))
-        file_u << self.u
+        if opt["saveSolution"]:
+            file_u << self.u
 
         for i, s in enumerate(Tspace[1:]):
 
             print('Iteration {}/{}:\t t = {}'.format(i+1, nt, s))
+            self.iter = i
 
             # Update time in coefficient functions
             self.updateTime(s)
@@ -44,9 +47,9 @@ class ParabolicNVP(NVP):
             # Solve problem for current time step
             super().solve(opt)
 
-            file_u << self.u
+            if opt["saveSolution"]:
+                file_u << self.u
 
-            # self.plotSolution()
 
     def getType(self):
         return 'ParabolicNVP'

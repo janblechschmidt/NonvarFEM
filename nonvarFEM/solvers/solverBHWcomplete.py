@@ -31,6 +31,12 @@ def solverBHWcomplete(P, opt):
     # 2-1 block: weighted mass matrix
     a += - gamma * inner(P.a, trial_H) * test_p * dx
 
+    if P.hasDrift:
+        a += - gamma * inner(P.b, grad(trial_u)) * test_p * dx
+    
+    if P.hasPotential:
+        a += - gamma * P.c * trial_u * test_p * dx
+
     # 2-2 block: mass matrix in W_H
     a += inner(trial_p, test_p) * dx
 
@@ -63,8 +69,8 @@ def solverBHWcomplete(P, opt):
 
     # Adjust system matrix and load vector in case of time-dependent problem
     if P.isTimeDependant:
-        a += +gamma / P.dt * trial_u * test_p * dx  # + seems to be correct here
-        f += -gamma / P.dt * P.u_np1               # - seems to be correct here
+        a += +gamma / P.dt * trial_u * test_p * dx
+        f += -gamma / P.dt * P.u_np1 
 
     fh = project(f, P.W_P)
 

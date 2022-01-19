@@ -1,21 +1,22 @@
-from solve import solveProblem
-import problems.testsParabolicNVP as PNVP
+import sys
+sys.path.insert(0, '../..')
+
+# Solve routine
+from nonvarFEM import solveProblem
+
+import nonvarFEM.problems.testsParabolicNVP as PNVP
 import dolfin
 
-from stats.writeOutputToCsv import writeOutputToCsv
-from standardOptions import standardOptions
+import nonvarFEM.helpers as hlp
 
-CSV_DIR = './results/experiment5/'
 WRITE_CSV = True
-
 
 def experiment(P, opt, expname):
     # First run with regular refinement
     opt["meshRefinement"] = 1
     df_uniform = solveProblem(P, opt)
     if WRITE_CSV:
-        writeOutputToCsv(CSV_DIR + opt['id'] +
-                         expname + '_uniform.csv', df_uniform)
+        hlp.writeOutputToCsv(df_uniform, opt, opt['id'] + expname + '_uniform', df_uniform)
 
 
 if __name__ == "__main__":
@@ -25,8 +26,11 @@ if __name__ == "__main__":
     """
     Global settings
     """
-    opt = standardOptions()
+    opt = hlp.standardOptions()
+    # Works well
     eps_range = [0.1, 0.01, 0.001]
+    # Errors explode for this case
+    # eps_range = [0.0001]
     for eps in eps_range:
         P = PNVP.PNVP_Degenerate_1(eps)
 
@@ -60,4 +64,4 @@ if __name__ == "__main__":
         opt["errorEstimationMethod"] = 1
 
         if WRITE_CSV:
-            writeOutputToCsv(CSV_DIR + opt['id'] + '.csv', df)
+            hlp.writeOutputToCsv(df, opt, opt['id'])

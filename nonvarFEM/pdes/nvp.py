@@ -300,6 +300,12 @@ class NVP:
                     ax.set_aspect('auto')
 
                     ax = fig.add_subplot(3, 1, 2)
+                    if isinstance(self.u_, Function):
+                        u_exact = Function(V)
+                        u_exact.interpolate(self.u_)
+                    else:
+                        u_exact = project(self.u_, self.V)
+                    u_diff = self.u - u_exact
                     c2 = plot(u_exact)
                     plt.colorbar(c2)
                     plt.title('Analytical solution')

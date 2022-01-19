@@ -48,8 +48,8 @@ if __name__ == "__main__":
     opt["stabilityConstant1"] = 2  # Stability constant for first-order term
     opt["stabilityConstant2"] = 0  # Stability constant for second-order term
     # opt["solutionMethod"] = 'BHWcomplete'
-    opt["solutionMethod"] = 'BHWreduced'
-    # opt["solutionMethod"] = 'NeilanSalgadoZhang'
+    # opt["solutionMethod"] = 'BHWreduced'
+    opt["solutionMethod"] = 'NeilanSalgadoZhang'
     # opt["solutionMethod"] = 'Neilan'
     opt["gmresWarmStart"] = True  # GMRES warm start
 
@@ -61,10 +61,10 @@ if __name__ == "__main__":
     # alpha = 0.25
     # alpha = 0.5
     # alpha = 0.6
-    alpha = 0.75
+    # alpha = 0.75
     # alpha = 1.0
     # alpha = 1.25
-    P = NVP.Sol_in_H_alpha_3d(alpha)
+    # P = NVP.Sol_in_H_alpha_3d(alpha)
     # P = NVP.No_Cordes()
     # P = NVP.Poisson()
     # P = NVP.Poisson_inhomoBC()
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     # P = PHJB.JensenSmears_1()
     # P = PHJB.JensenSmears_2()
     # P = PHJB.Mother()
-    # P = PHJB.MinimumArrivalTimeParabolic()
+    P = PHJB.MinimumArrivalTimeParabolic(corrxy=0.9)
     # P = PHJB.Merton()
     # P = PHJB.Chen_Forsyth()
     from time import time

@@ -2,7 +2,7 @@
 from dolfin import Constant, FunctionSpace, UserExpression
 from dolfin import as_vector, as_matrix
 from dolfin import inner, grad, interpolate, project, Dx
-from dolfin import SpatialCoordinate
+from dolfin import SpatialCoordinate, Point
 from dolfin import sqrt, sin, pi
 from dolfin import cos, conditional, exp
 
@@ -10,7 +10,7 @@ import numpy as np
 import ufl
 
 # Import some standard meshes
-from .meshes import mesh_UnitSquare, mesh_Square
+from .meshes import mesh_UnitSquare, mesh_Square, RectangleMesh
 
 # Import base class of problems
 from nonvarFEM.pdes.hjb import HJB
@@ -18,15 +18,18 @@ from nonvarFEM.pdes.hjb import HJB
 
 class MinimumArrivalTime(HJB):
 
-    def __init__(self, alpha=0.4, beta=0.4, cmin=-1., cmax=1.0):
+    def __init__(self, alpha=0.5, beta=0.5, cmin=-1., cmax=1.0, sigmax=0.5, sigmay=0.5, corrxy=0.0):
         self.alpha = alpha
         self.beta = beta
         self.cmin = cmin
         self.cmax = cmax
+        self.sigmax = sigmax
+        self.sigmay = sigmay
+        self.corrxy = corrxy
 
     def initControl(self):
-        self.controlSpace = [FunctionSpace(self.mesh, "DG", 0),
-                             FunctionSpace(self.mesh, "DG", 0)]
+        self.controlSpace = [FunctionSpace(self.mesh, "DG", 1),
+                             FunctionSpace(self.mesh, "DG", 1)]
 
         self.gamma = []
         # Dxu = project(Dx(self.u,0),FunctionSpace(self.mesh, "DG", 0))
@@ -97,7 +100,13 @@ class MinimumArrivalTime(HJB):
         # Init coefficient matrix
         x, y = SpatialCoordinate(self.mesh)
 
-        self.a = as_matrix([[1.0, 0.0], [0.0, 1.0]])
+        axx = .5 * self.sigmax**2
+        ayy = .5 * self.sigmay**2
+        if self.corrxy == 'pw':
+            axy = .5 * self.sigmax * self.sigmay * conditional(sqrt(x**2 + y**2) < .5, 0.9, -0.9)
+        else:
+            axy = .5 * self.corrxy * self.sigmax * self.sigmay
+        self.a = as_matrix([[axx, axy], [axy, ayy]])
         self.b = as_vector([self.gamma[0], self.gamma[1]])
 
         # self.u_ = x*y*(1-exp(1-abs(x))) * (1-exp(1-abs(y)))
@@ -368,8 +377,10 @@ class Smears_Sueli_1(HJB):
         self.controlSpace.append(FunctionSpace(self.mesh, "CG", 2))
         self.controlSpace.append(FunctionSpace(self.mesh, "CG", 2))
         self.gamma = []
-        self.gamma.append(interpolate(Constant("0.0"), self.controlSpace))
-        self.gamma.append(interpolate(Constant("0.0"), self.controlSpace))
+        self.gamma.append(Constant("0.0"))
+        self.gamma.append(Constant("0.0"))
+        # self.gamma.append(interpolate(Constant("0.0"), self.controlSpace))
+        # self.gamma.append(interpolate(Constant("0.0"), self.controlSpace))
 
     def updateControl(self):
         """ The optimal continuous control in this example depends on the
@@ -408,7 +419,7 @@ class Smears_Sueli_1(HJB):
         # TODO work here
 
         # Set boundary conditions
-        self.g = 0.0
+        self.g = Constant(0.0)
 
     def initMesh(self, n):
         self.mesh = mesh_UnitSquare(n)
@@ -513,3 +524,168 @@ class Mother(HJB):
         # self.mesh = mesh_Lshape(n)
         self.mesh = mesh_UnitSquare(n)
         # self.mesh = mesh_UnitSquare(n, 'mshr')
+
+class Example_1(HJB):
+
+    def __init__(self, cmin=.5, cmax=1.5):
+        self.cmin = cmin
+        self.cmax = cmax
+
+    def initControl(self):
+        self.controlSpace = [FunctionSpace(self.mesh, "DG", 0)]
+        self.gamma = []
+        # self.gamma.append(1.0)
+        self.gamma.append(Constant("1.0"))
+
+    def updateControl(self):
+        """ The optimal continuous control in this example depends on the
+        gradient. """
+
+        x, y = SpatialCoordinate(self.mesh)
+        # Dxu = project(Dx(self.u,0),FunctionSpace(self.mesh, "DG", 0))
+        Dxxu = Dx(Dx(self.u, 0), 0)
+        Dxxu = self.H[0,0]
+        self.gamma[0] = .5 * (x**2) * Dxxu
+        # self.gamma[0] = conditional(Dxxu > 0, self.cmin, self.cmax)
+
+    def updateCoefficients(self):
+        # Init coefficient matrix
+        x, y = SpatialCoordinate(self.mesh)
+
+        self.a = as_matrix([[self.gamma[0] * x**2 + 0.1, 0.0], [0.0, 1.0]])
+        # self.a = as_matrix([[self.gamma[0] * x**2 + 0.1, 0.0], [0.0, 1.0]])
+        # self.b = as_vector([self.gamma[0], self.gamma[1]])
+
+        # self.u_ = x*y*(1-exp(1-abs(x))) * (1-exp(1-abs(y)))
+
+        # Init right-hand side
+        self.f = self.gamma[0]**2  + 1.
+
+        # Set boundary conditions
+        self.g = Constant(0.0)
+
+    def initMesh(self, n):
+        self.mesh = mesh_Square(n)
+
+class Neilan_Wu_3(HJB):
+    def __init__(self, alpha = 1.5, cmin=.5, cmax=1.5):
+
+        # Set paramater
+        self.alpha = alpha
+        self.cmin = cmin
+        self.cmax = cmax
+
+    def initControl(self):
+        self.controlSpace = [FunctionSpace(self.mesh, "DG", 0)]
+        self.gamma = []
+        self.gamma.append(Constant("1.0"))
+
+    def updateControl(self):
+        """ The optimal continuous control in this example depends on the
+        gradient. """
+
+        x, y = SpatialCoordinate(self.mesh)
+
+        # res1 = inner((self.a1 - self.a2), grad(grad(self.u))) - (self.f1 - self.f2)
+        # Dxx = grad(grad(self.u))
+        if hasattr(self, 'H'):
+            print('Use FE Hessian')
+            Dxxu = self.H
+        else:
+            print('Use piecewise Hessian')
+            Dxxu = grad(grad(self.u))
+            
+        # Dxx = self.H
+        # Dxx = grad(grad(self.u))
+        res1 = inner((self.a1 - self.a2), Dxxu) - (self.f1 - self.f2)
+        self.gamma[0] = conditional(res1 > 0, 0.0, 1.0)
+
+    def updateCoefficients(self):
+
+        x,y = SpatialCoordinate(self.mesh)
+        # r = .1*sqrt((x-np.pi)**2 + (y-np.pi)**2)
+        # self.u_ = pow(r,1.5) * sin(x) * sin(y)
+
+        # Set up explicit solution
+        self.u_ = sin(x) * sin(y)
+
+        # Init coefficient matrix
+        self.a1 = as_matrix([[2, .5], [0.5, 1.5]]) + conditional(x * y > 0, 1., -1.) * as_matrix([[1., .5], [.5, .5]])
+        self.a2 = as_matrix([[1.5, .5], [0.5, 2.]]) + conditional(x * y > 0, 1., -1.) * as_matrix([[.5, .5], [.5, 1.]])
+        self.a = self.gamma[0] * self.a1 + (1. - self.gamma[0]) * self.a2
+
+        # Init right-hand side
+        self.f1 = inner(self.a1, grad(grad(self.u_)))
+        self.f2 = inner(self.a2, grad(grad(self.u_)))
+        self.fcond = conditional(x*y>0, 0., 1.)
+        # self.f = self.fcond * self.f1 + (1.-self.fcond) * self.f2
+        self.f = self.gamma[0] * self.f1 + (1.-self.gamma[0]) * self.f2
+        # conditional(x*x*x-y>0.0,2.0,1.0)]])
+
+        # self.f = inner(self.a, grad(grad(self.u_)))
+        
+        # Set boundary conditions to exact solution
+        self.g = Constant(0.0)
+
+    def initMesh(self, n):
+
+        # Set mesh to square on [0,1]^2
+        self.mesh = RectangleMesh(Point(-np.pi,-np.pi), Point(np.pi,np.pi),n,n)
+        # self.mesh = mesh_UnitSquare(n)
+
+class HJB_H_alpha(HJB):
+    def __init__(self, alpha = 1.3, cmin=.5, cmax=1.5):
+
+        # Set paramater
+        self.alpha = alpha
+        self.cmin = cmin
+        self.cmax = cmax
+
+    def initControl(self):
+        self.controlSpace = [FunctionSpace(self.mesh, "DG", 0)]
+        self.gamma = []
+        self.gamma.append(Constant("1.0"))
+
+    def updateControl(self):
+        """ The optimal continuous control in this example depends on the
+        gradient. """
+
+        x, y = SpatialCoordinate(self.mesh)
+        # Dxu = project(Dx(self.u,0),FunctionSpace(self.mesh, "DG", 0))
+        # Dxxu = Dx(Dx(self.u, 0), 0)
+        if hasattr(self, 'H'):
+            print('Use FE Hessian')
+            Dxxu = self.H[0, 0]
+        else:
+            print('Use piecewise Hessian')
+            Dxxu = Dx(Dx(self.u, 0), 0)
+
+        # print('Use piecewise Hessian')
+        # Dxxu = Dx(Dx(self.u, 0), 0)
+        self.gamma[0] = .5 * (x**2) * Dxxu
+        # self.gamma[0] = conditional(Dxxu > 0, self.cmin, self.cmax)
+
+    def updateCoefficients(self):
+
+        x,y = SpatialCoordinate(self.mesh)
+
+        # Init coefficient matrix
+        # self.a = as_matrix([[1., Constant(0.)], [Constant(0.), 1.]])
+        self.a = as_matrix([[self.gamma[0] * x**2 + 1, Constant(0.)], [Constant(0.), 1.]])
+        # self.a_0 = as_matrix([[1., Constant(0.)], [Constant(0.), 1.]])
+        
+        # Set up explicit solution
+        r = sqrt(x**2 + y**2)
+        phi = ufl.atan_2(x, y)
+        self.u_0 = r**self.alpha * sin(2. * phi) * (1-x) * (1-y)
+
+        # Init right-hand side
+        self.f = inner(self.a, grad(grad(self.u_0))) + self.gamma[0]**2 
+        
+        # Set boundary conditions to exact solution
+        self.g = Constant(0.0)
+
+    def initMesh(self, n):
+
+        # Set mesh to square on [0,1]^2
+        self.mesh = mesh_UnitSquare(n)

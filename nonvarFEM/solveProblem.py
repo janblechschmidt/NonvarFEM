@@ -10,6 +10,9 @@ import nonvarFEM.helpers as hlp
 
 # Norms
 from nonvarFEM.norms import EdgeJump_norm, H20_norm, H10_norm, L2_norm
+
+import nonvarFEM.problems.testsParabolicNVP as PNVP
+
 from dolfin import XDMFFile
 
 import dolfin
@@ -88,6 +91,16 @@ def solveProblem(P, opt):
         if k == 0 and opt["errorEstimationMethod"] == 2:
             # Initialize list to store all solutions
             U = []
+
+        if isinstance(P, PNVP.PNVP_WorstOfTwoAssetsPut):
+            if k == 0:
+                qoi_val_list = []
+            qoi_val = P.u([40,40])
+            qoi_val_list.append(qoi_val)
+
+            print('--------------------------------------------------\n')
+            print('Value at qoi: %10.8f\n' % qoi_val)
+            print('--------------------------------------------------\n')
 
         # Method 1: Determine norms of residual on current mesh
         if opt["errorEstimationMethod"] == 1:
@@ -192,6 +205,9 @@ def solveProblem(P, opt):
         if opt["plotConvergenceRates"]:
             hlp.plotConvergenceRates(df)
 
+    if isinstance(P, PNVP.PNVP_WorstOfTwoAssetsPut):
+        df['qoi_val'] = qoi_val_list
+    
     if opt["writeToCsv"]:
         hlp.writeOutputToCsv(df, opt)
 

@@ -125,11 +125,14 @@ class ExplicitSolution_WorstOfTwoAssetsPut(UserExpression):
 
 
 class PNVP_WorstOfTwoAssetsPut(ParabolicNVP):
-    def __init__(self):
+    def __init__(self, xmax = 140, ymax = 140, exact_bc=True):
 
         # Time horizon
         self.T = [0.5, 1.0]
         self.t = Constant(self.T[1])
+        self.xmax = xmax
+        self.ymax = ymax
+        self.exact_bc=exact_bc
 
     def updateCoefficients(self):
 
@@ -158,16 +161,17 @@ class PNVP_WorstOfTwoAssetsPut(ParabolicNVP):
         self.f = Constant(0.0)
 
         # Set boundary conditions to exact solution
-        # self.g_t = lambda t : [(Constant(0.0), 'near(max(x[0],x[1]),200)'),
-        #           (Constant(K * exp(-r*(self.T[1]-t))), 'near(min(x[0],x[1]),0)')]
-        self.g = ExplicitSolution_WorstOfTwoAssetsPut(
-            self.t, K, r, self.T[1], sigma1, sigma2, rho,
-            cell=self.mesh.ufl_cell(), domain=self.mesh)
+        if self.exact_bc:
+            self.g = ExplicitSolution_WorstOfTwoAssetsPut(
+                self.t, K, r, self.T[1], sigma1, sigma2, rho,
+                cell=self.mesh.ufl_cell(), domain=self.mesh)
+        else:
+            self.g = [(Constant(0.0), 'near(max(x[0],x[1]),200)'),
+                (Constant(K * exp(-r*(self.T[1]-self.t))), 'near(min(x[0],x[1]),0)')]
+
 
     def initMesh(self, n):
-        xmax = 200
-        ymax = 200
-        self.mesh = RectangleMesh(Point(0., 0.), Point(xmax, ymax), n, n)
+        self.mesh = RectangleMesh(Point(0., 0.), Point(self.xmax, self.ymax), n, n)
 
 
 class PNVP_1_1d(ParabolicNVP):
@@ -270,6 +274,7 @@ class PNVP_Degenerate_1(ParabolicNVP):
         self.T = [0., 1.0]
         self.t = Constant(self.T[1])
         self.eps = eps
+        self.timeDependentCoefs = True
 
     def updateCoefficients(self):
 

@@ -27,37 +27,38 @@ class ParabolicHJB(HJB):
         Tspace = np.linspace(self.T[1], self.T[0], nt+1)
         self.dt = (self.T[1] - self.T[0]) / nt
         self.u_np1 = Function(self.V)
+        
+        print('Setting final time conditions')
+        assign(self.u, project(self.u_T, self.V))
 
-        file_u = File('./pvd/u.pvd')
-        file_gamma = []
-        for i in range(nc):
-            file_gamma.append(File('./pvd/gamma_{}.pvd'.format(i)))
+        if opt["saveSolution"]:
+            file_u = File('./pvd/u.pvd')
+            file_gamma = []
+            for i in range(nc):
+                file_gamma.append(File('./pvd/gamma_{}.pvd'.format(i)))
 
-        for i, s in enumerate(Tspace):
+        for i, s in enumerate(Tspace[1:]):
             self.current_time = s
-            print('Iteration {}/{}:\t t = {}'.format(i, nt, s))
+            print('Iteration {}/{}:\t t = {}'.format(i+1, nt, s))
+            self.iter = i
 
             # Update time in coefficient functions
             self.updateTime(s)
 
-            if i == 0:
-                print('Setting final time conditions')
-                assign(self.u, project(self.u_T, self.V))
+            assign(self.u_np1, self.u)
+            # Solve problem for current time step
+            super().solve(opt)
+            # self.plotControl()
+            # self.plotSolution()
 
-            else:
-                assign(self.u_np1, self.u)
-                # Solve problem for current time step
-                super().solve(opt)
-                # self.plotControl()
-                # self.plotSolution()
-
-            file_u << self.u
-            for i in range(nc):
-                try:
-                    file_gamma[i] << self.gamma[i]
-                except AttributeError:
-                    file_gamma[i] << project(
-                        self.gamma[i], self.controlSpace[i])
+            if opt["saveSolution"]:
+                file_u << self.u
+                for i in range(nc):
+                    try:
+                        file_gamma[i] << self.gamma[i]
+                    except AttributeError:
+                        file_gamma[i] << project(
+                            self.gamma[i], self.controlSpace[i])
 
     def getType(self):
         return 'ParabolicHJB'
